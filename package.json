@@ -1,0 +1,17 @@
+{
+  "name": "aims-capstone",
+  "version": "1.0.0",
+  "description": "Agrivet Integrated Management System - Frontend UI",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "install": "cd frontend && npm install",
+    "lint": "cd frontend && npm run lint",
+    "lint:fix": "cd frontend && npm run lint:fix",
+    "preview": "cd frontend && npm run preview"
+  },
+  "keywords": ["agrivet", "management", "system", "frontend", "ui"],
+  "author": "AIMS Team",
+  "license": "MIT"
+}
