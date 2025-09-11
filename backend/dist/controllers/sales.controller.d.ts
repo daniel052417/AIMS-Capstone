@@ -1,0 +1,20 @@
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
+export declare const getSalesOrders: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getSalesOrderById: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createSalesOrder: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateSalesOrder: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateOrderStatus: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getSalesTransactions: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createSalesTransaction: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getPayments: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createPayment: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCustomers: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCustomerById: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createCustomer: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateCustomer: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getSalesReport: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getTopSellingProducts: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCustomerSalesReport: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getSalesDashboard: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+//# sourceMappingURL=sales.controller.d.ts.map

@@ -12,7 +12,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
-import { CampaignFormData, CampaignTemplate, CampaignTemplateType } from '../../types/marketing';
+import type { CampaignFormData, CampaignTemplate, CampaignTemplateType } from '../../types/marketing';
 import { uploadImage } from '../../lib/fileUploadService';
 import { validateCampaignForm } from '../../lib/validationService';
 

@@ -1,0 +1,15 @@
+export declare const isValidEmail: (email: string) => boolean;
+export declare const isValidPassword: (password: string) => boolean;
+export declare const isValidPhoneNumber: (phone: string) => boolean;
+export declare const isValidUUID: (uuid: string) => boolean;
+export declare const isValidDate: (date: string) => boolean;
+export declare const isValidURL: (url: string) => boolean;
+export declare const sanitizeString: (str: string) => string;
+export declare const validateRequired: (value: any, fieldName: string) => void;
+export declare const validateMinLength: (value: string, minLength: number, fieldName: string) => void;
+export declare const validateMaxLength: (value: string, maxLength: number, fieldName: string) => void;
+export declare const validateRange: (value: number, min: number, max: number, fieldName: string) => void;
+export declare const validateEnum: (value: string, allowedValues: string[], fieldName: string) => void;
+export declare const validateArray: (value: any[], fieldName: string) => void;
+export declare const validateObject: (value: any, fieldName: string) => void;
+//# sourceMappingURL=validators.d.ts.map

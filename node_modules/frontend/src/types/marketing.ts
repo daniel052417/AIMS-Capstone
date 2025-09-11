@@ -96,6 +96,7 @@ export interface CampaignFormData {
   background_color?: string;
   text_color?: string;
   image_file?: File;
+  image_url?: string;
   image_alt_text?: string;
   cta_text?: string;
   cta_url?: string;

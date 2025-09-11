@@ -1,0 +1,23 @@
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
+export declare const getProducts: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getProductById: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createProduct: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateProduct: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteProduct: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCategories: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createCategory: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateCategory: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteCategory: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getSuppliers: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createSupplier: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateSupplier: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteSupplier: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getInventoryLevels: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateInventoryLevel: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getInventoryMovements: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createInventoryMovement: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const adjustStock: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getLowStockProducts: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getProductSalesReport: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+//# sourceMappingURL=products.controller.d.ts.map

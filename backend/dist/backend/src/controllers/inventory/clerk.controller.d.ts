@@ -1,0 +1,39 @@
+import { Request, Response } from 'express';
+export declare class InventoryClerkController {
+    static getDashboard: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getProducts: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getProductById: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createProduct: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static updateProduct: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static deleteProduct: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getCategories: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getCategoryById: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createCategory: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static updateCategory: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static deleteCategory: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getSuppliers: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getSupplierById: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createSupplier: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static updateSupplier: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static deleteSupplier: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getInventoryTransactions: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createInventoryTransaction: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getStockAdjustments: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createStockAdjustment: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getStockMovements: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getPurchaseOrders: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getPurchaseOrderById: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createPurchaseOrder: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static updatePurchaseOrder: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getPurchaseOrderItems: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createPurchaseOrderItem: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getStockAlerts: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static resolveStockAlert: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getInventoryCounts: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createInventoryCount: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getInventoryCountItems: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static createInventoryCountItem: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getInventoryReport: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    static getStockMovementReport: (req: Request, res: Response, next: import("express").NextFunction) => void;
+}
+//# sourceMappingURL=clerk.controller.d.ts.map

@@ -1,0 +1,21 @@
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../middleware/auth';
+export declare const getDashboard: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCampaigns: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCampaignById: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createCampaign: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateCampaign: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteCampaign: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const publishCampaign: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const unpublishCampaign: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getTemplates: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createTemplate: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateTemplate: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteTemplate: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getAnalytics: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getCampaignAnalytics: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getNotifications: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+//# sourceMappingURL=admin.controller.d.ts.map

@@ -1,0 +1,21 @@
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
+export declare const getNotifications: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const markAsRead: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const markAllAsRead: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getNotificationTemplates: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getNotificationTemplateById: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createNotificationTemplate: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateNotificationTemplate: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteNotificationTemplate: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getClientNotifications: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const createClientNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const updateClientNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const deleteClientNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const sendClientNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const sendBulkNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const sendSystemNotification: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+export declare const getNotificationStats: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+//# sourceMappingURL=notifications.controller.d.ts.map

@@ -20,6 +20,8 @@ import {
   CheckCircle,
   Megaphone as Campaign
 } from 'lucide-react';
+import { CreateCampaignModal } from '../../components/modals';
+import type { CampaignFormData, CampaignTemplate } from '../../types/marketing';
 
 const CampaignManagement: React.FC = () => {
   const [campaigns, setCampaigns] = useState([
@@ -38,7 +40,7 @@ const CampaignManagement: React.FC = () => {
       cta_url: '/shop',
       cta_button_color: '#4ECDC4',
       cta_text_color: '#FFFFFF',
-      target_audience: 'All Customers',
+      target_audience: ['All Customers'],
       target_channels: ['Website', 'Email', 'Social Media'],
       is_active: true,
       is_published: true,
@@ -65,7 +67,7 @@ const CampaignManagement: React.FC = () => {
       cta_url: '/products/organic-fertilizers',
       cta_button_color: '#FF6B6B',
       cta_text_color: '#FFFFFF',
-      target_audience: 'Farmers',
+      target_audience: ['Farmers'],
       target_channels: ['Website', 'Email'],
       is_active: true,
       is_published: false,
@@ -92,7 +94,7 @@ const CampaignManagement: React.FC = () => {
       cta_url: '/services/veterinary',
       cta_button_color: '#96CEB4',
       cta_text_color: '#FFFFFF',
-      target_audience: 'Pet Owners',
+      target_audience: ['Pet Owners'],
       target_channels: ['Website'],
       is_active: false,
       is_published: false,
@@ -106,10 +108,40 @@ const CampaignManagement: React.FC = () => {
     }
   ]);
 
-  const [templates] = useState([
-    { id: '1', template_name: 'Hero Banner', template_type: 'hero_banner' },
-    { id: '2', template_name: 'Promo Card', template_type: 'promo_card' },
-    { id: '3', template_name: 'Popup Modal', template_type: 'popup' }
+  const [templates] = useState<CampaignTemplate[]>([
+    { 
+      id: '1', 
+      template_name: 'Hero Banner', 
+      template_type: 'hero_banner',
+      description: 'Full-width banner for homepage and landing pages',
+      default_styles: {},
+      required_fields: ['title', 'cta_text'],
+      is_active: true,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    },
+    { 
+      id: '2', 
+      template_name: 'Promo Card', 
+      template_type: 'promo_card',
+      description: 'Compact card for product promotions and offers',
+      default_styles: {},
+      required_fields: ['title', 'description'],
+      is_active: true,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    },
+    { 
+      id: '3', 
+      template_name: 'Popup Modal', 
+      template_type: 'popup',
+      description: 'Overlay popup for announcements and special offers',
+      default_styles: {},
+      required_fields: ['title', 'cta_text'],
+      is_active: true,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    }
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -117,6 +149,11 @@ const CampaignManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [templateFilter, setTemplateFilter] = useState('all');
+  
+  // Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
 
   const getStatusBadge = (campaign: any) => {
     if (campaign.is_published) {
@@ -168,13 +205,15 @@ const CampaignManagement: React.FC = () => {
   });
 
   const handleCreateCampaign = () => {
-    // TODO: Implement create campaign
-    console.log('Create new campaign');
+    setEditingCampaign(null);
+    setModalMode('add');
+    setIsCreateModalOpen(true);
   };
 
   const handleEditCampaign = (campaign: any) => {
-    // TODO: Implement edit campaign
-    console.log('Edit campaign:', campaign.id);
+    setEditingCampaign(campaign);
+    setModalMode('edit');
+    setIsCreateModalOpen(true);
   };
 
   const handlePreviewCampaign = (campaign: any) => {
@@ -204,6 +243,49 @@ const CampaignManagement: React.FC = () => {
     setCampaigns(prev => prev.map(c => 
       c.id === campaignId ? { ...c, is_published: false } : c
     ));
+  };
+
+  const handleSaveCampaign = async (formData: CampaignFormData) => {
+    setIsLoading(true);
+    try {
+      // TODO: Replace with actual API call when backend is connected
+      console.log('Saving campaign:', formData);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (modalMode === 'add') {
+        const newCampaign = {
+          id: Date.now().toString(),
+          ...formData,
+          views_count: 0,
+          clicks_count: 0,
+          conversions_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setCampaigns(prev => [newCampaign, ...prev]);
+      } else if (editingCampaign) {
+        setCampaigns(prev => prev.map(c => 
+          c.id === editingCampaign.id 
+            ? { ...c, ...formData, updated_at: new Date().toISOString() }
+            : c
+        ));
+      }
+      
+      setIsCreateModalOpen(false);
+      setEditingCampaign(null);
+    } catch (error) {
+      console.error('Error saving campaign:', error);
+      setError('Failed to save campaign');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePreviewFormData = (formData: CampaignFormData) => {
+    // TODO: Implement preview functionality
+    console.log('Preview campaign form data:', formData);
   };
 
   return (
@@ -451,6 +533,21 @@ const CampaignManagement: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Create Campaign Modal */}
+      <CreateCampaignModal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setEditingCampaign(null);
+        }}
+        onSave={handleSaveCampaign}
+        onPreview={handlePreviewFormData}
+        campaign={editingCampaign}
+        templates={templates}
+        mode={modalMode}
+        isLoading={isLoading}
+      />
     </div>
   );
 };
