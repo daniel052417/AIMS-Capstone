@@ -1,139 +1,157 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { supabaseAdmin } from '../config/supabaseClient';
-import { config } from '../config/env';
-import { User } from '@shared/types/database';
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData {
-  email: string;
-  password: string;
-  first_name: string;
-  last_name: string;
-  role?: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    user: {
-      id: string;
-      email: string;
-      first_name: string;
-      last_name: string;
-      role: string;
-      is_active: boolean;
-    };
-    token: string;
-    refreshToken?: string;
-  };
-}
+import { supabaseAdmin, supabase } from '../config/supabaseClient';
+import { JWTUtils } from '../utils/jwt';
+import { PasswordUtils } from '../utils/password';
+import { User, LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
 
 export class AuthService {
-  /**
-   * Authenticate user with email and password
-   */
-  static async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  static async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
-      const { email, password } = credentials;
-
-      console.log('🔍 Login attempt for email:', email);
-
-      // Get user from database
-      const { data: user, error } = await supabaseAdmin
+      // Check if user already exists in public.users table
+      const { data: existingUser } = await supabaseAdmin
         .from('users')
-        .select(`
-          id,
-          email,
-          password_hash,
-          first_name,
-          last_name,
-          role,
-          is_active,
-          created_at,
-          updated_at
-        `)
-        .eq('email', email.toLowerCase())
+        .select('id')
+        .eq('email', data.email)
         .single();
 
-      console.log('📊 Supabase query result:', { 
-        hasUser: !!user, 
-        hasError: !!error,
-        errorMessage: error?.message,
-        userEmail: user?.email,
-        hasPasswordHash: !!user?.password_hash,
-        isActive: user?.is_active
+      if (existingUser) {
+        return {
+          success: false,
+          message: 'User with this email already exists',
+        };
+      }
+
+      // Validate password strength
+      const passwordValidation = PasswordUtils.validatePasswordStrength(data.password);
+      if (!passwordValidation.isValid) {
+        return {
+          success: false,
+          message: 'Password does not meet requirements',
+          errors: passwordValidation.errors,
+        };
+      }
+
+      // Step 1: Create user in Supabase Auth first
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        user_metadata: {
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone: data.phone,
+          branch_id: data.branch_id,
+        },
       });
 
-      if (error) {
-        console.error('❌ Supabase query error:', error);
+      if (authError) {
         return {
           success: false,
-          message: `Database error: ${error.message}`
+          message: authError.message || 'Failed to create user in authentication system',
         };
       }
 
-      if (!user) {
-        console.log('❌ User not found for email:', email);
+      if (!authData.user) {
         return {
           success: false,
-          message: 'User not found'
+          message: 'Failed to create user in authentication system',
         };
       }
 
-      // Check if user is active
-      if (!user.is_active) {
-        console.log('❌ User account is inactive:', user.email);
+      // Step 2: Create user in public.users table with the same ID from auth.users
+      const { data: user, error: userError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: authData.user.id, // Use the same ID from auth.users
+          email: data.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone: data.phone,
+          branch_id: data.branch_id,
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        // Rollback: Delete the auth user if public.users creation fails
+        try {
+          await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+        } catch (deleteError) {
+          console.error('Failed to rollback auth user:', deleteError);
+        }
+        
         return {
           success: false,
-          message: 'Account is deactivated. Please contact administrator.'
+          message: userError.message || 'Failed to create user profile',
         };
       }
 
-      // Check if password hash exists
-      if (!user.password_hash) {
-        console.log('❌ User has no password hash:', user.email);
-        return {
-          success: false,
-          message: 'User account not properly set up. Please contact administrator.'
-        };
-      }
-
-      // Verify password
-      console.log('🔐 Verifying password for user:', user.email);
-      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-      console.log('🔐 Password verification result:', isPasswordValid);
-      
-      if (!isPasswordValid) {
-        console.log('❌ Invalid password for user:', user.email);
-        return {
-          success: false,
-          message: 'Invalid password'
-        };
-      }
-
-      // Generate JWT token
-      const tokenPayload = {
+      // Step 3: Generate JWT tokens
+      const accessToken = JWTUtils.generateAccessToken({
         userId: user.id,
         email: user.email,
-        role: user.role
+        branchId: user.branch_id,
+      });
+
+      const refreshToken = JWTUtils.generateRefreshToken({
+        userId: user.id,
+        email: user.email,
+        branchId: user.branch_id,
+      });
+
+      return {
+        success: true,
+        message: 'User registered successfully',
+        data: {
+          user,
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        },
       };
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        message: error.message || 'Registration failed',
+      };
+    }
+  }
 
-      const token = jwt.sign(tokenPayload, config.jwt.secret, {
-        expiresIn: config.jwt.expiresIn
-      } as jwt.SignOptions);
+  static async login(data: LoginRequest): Promise<AuthResponse> {
+    try {
+      // Authenticate with Supabase Auth using anon client
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
 
-      // Generate refresh token
-      const refreshToken = jwt.sign(
-        { userId: user.id },
-        config.jwt.secret,
-        { expiresIn: config.jwt.refreshExpiresIn } as jwt.SignOptions
-      );
+      if (authError) {
+        return {
+          success: false,
+          message: authError.message || 'Invalid email or password',
+        };
+      }
+
+      if (!authData.user) {
+        return {
+          success: false,
+          message: 'Authentication failed',
+        };
+      }
+
+      // Get user from database
+      const { data: user, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .eq('is_active', true)
+        .single();
+
+      if (userError || !user) {
+        return {
+          success: false,
+          message: 'User not found or inactive',
+        };
+      }
 
       // Update last login
       await supabaseAdmin
@@ -141,268 +159,101 @@ export class AuthService {
         .update({ last_login: new Date().toISOString() })
         .eq('id', user.id);
 
-      console.log('✅ Login successful for user:', user.email);
+      // Generate tokens
+      const accessToken = JWTUtils.generateAccessToken({
+        userId: user.id,
+        email: user.email,
+        branchId: user.branch_id,
+      });
+
+      const refreshToken = JWTUtils.generateRefreshToken({
+        userId: user.id,
+        email: user.email,
+        branchId: user.branch_id,
+      });
+
       return {
         success: true,
         message: 'Login successful',
         data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            role: user.role,
-            is_active: user.is_active
-          },
-          token,
-          refreshToken
-        }
+          user,
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        },
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       return {
         success: false,
-        message: 'Internal server error during login'
+        message: error.message || 'Login failed',
       };
     }
   }
 
-  /**
-   * Register a new user
-   */
-  static async register(userData: RegisterData): Promise<AuthResponse> {
+  static async refreshToken(refreshToken: string): Promise<AuthResponse> {
     try {
-      const { email, password, first_name, last_name, role = 'user', department } = userData;
+      // Verify refresh token
+      const payload = JWTUtils.verifyToken(refreshToken);
 
-      // Check if user already exists
-      const { data: existingUser } = await supabaseAdmin
-        .from('users')
-        .select('id')
-        .eq('email', email.toLowerCase())
-        .single();
-
-      if (existingUser) {
-        return {
-          success: false,
-          message: 'User with this email already exists'
-        };
-      }
-
-      // Hash password
-      const saltRounds = 12;
-      const password_hash = await bcrypt.hash(password, saltRounds);
-
-      // Create user
-      const { data: newUser, error } = await supabaseAdmin
-        .from('users')
-        .insert({
-          email: email.toLowerCase(),
-          password_hash,
-          first_name,
-          last_name,
-          role,
-          department,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select(`
-          id,
-          email,
-          first_name,
-          last_name,
-          role,
-          department,
-          is_active,
-          created_at
-        `)
-        .single();
-
-      if (error || !newUser) {
-        console.error('Registration error:', error);
-        return {
-          success: false,
-          message: 'Failed to create user account'
-        };
-      }
-
-      // Generate JWT token
-      const tokenPayload = {
-        userId: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-        department: newUser.department
-      };
-
-      const token = jwt.sign(tokenPayload, config.jwt.secret, {
-        expiresIn: config.jwt.expiresIn
-      } as jwt.SignOptions);
-
-      return {
-        success: true,
-        message: 'Registration successful',
-        data: {
-          user: {
-            id: newUser.id,
-            email: newUser.email,
-            first_name: newUser.first_name,
-            last_name: newUser.last_name,
-            role: newUser.role,
-            department: newUser.department,
-            is_active: newUser.is_active
-          },
-          token
-        }
-      };
-    } catch (error) {
-      console.error('Registration error:', error);
-      return {
-        success: false,
-        message: 'Internal server error during registration'
-      };
-    }
-  }
-
-  /**
-   * Get current user information from JWT token
-   */
-  static async getCurrentUser(userId: string): Promise<AuthResponse> {
-    try {
+      // Get user from database
       const { data: user, error } = await supabaseAdmin
         .from('users')
-        .select(`
-          id,
-          email,
-          first_name,
-          last_name,
-          role,
-          department,
-          is_active,
-          created_at,
-          updated_at,
-          last_login
-        `)
-        .eq('id', userId)
+        .select('*')
+        .eq('id', payload.userId)
+        .eq('is_active', true)
         .single();
 
       if (error || !user) {
         return {
           success: false,
-          message: 'User not found'
+          message: 'User not found or inactive',
         };
       }
 
-      if (!user.is_active) {
-        return {
-          success: false,
-          message: 'Account is deactivated'
-        };
-      }
-
-      return {
-        success: true,
-        message: 'User information retrieved successfully',
-        data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            role: user.role,
-            department: user.department,
-            is_active: user.is_active
-          },
-          token: '' // No token needed for getCurrentUser
-        }
-      };
-    } catch (error) {
-      console.error('Get current user error:', error);
-      return {
-        success: false,
-        message: 'Internal server error'
-      };
-    }
-  }
-
-  /**
-   * Refresh JWT token
-   */
-  static async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    try {
-      const decoded = jwt.verify(refreshToken, config.jwt.secret) as any;
-      const userId = decoded.userId;
-
-      // Get user to ensure they still exist and are active
-      const { data: user, error } = await supabaseAdmin
-        .from('users')
-        .select('id, email, role, department, is_active')
-        .eq('id', userId)
-        .single();
-
-      if (error || !user || !user.is_active) {
-        return {
-          success: false,
-          message: 'Invalid refresh token'
-        };
-      }
-
-      // Generate new access token
-      const tokenPayload = {
+      // Generate new tokens
+      const newAccessToken = JWTUtils.generateAccessToken({
         userId: user.id,
         email: user.email,
-        role: user.role,
-        department: user.department
-      };
+        branchId: user.branch_id,
+      });
 
-      const newToken = jwt.sign(tokenPayload, config.jwt.secret, {
-        expiresIn: config.jwt.expiresIn
-      } as jwt.SignOptions);
+      const newRefreshToken = JWTUtils.generateRefreshToken({
+        userId: user.id,
+        email: user.email,
+        branchId: user.branch_id,
+      });
 
       return {
         success: true,
         message: 'Token refreshed successfully',
         data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            first_name: '',
-            last_name: '',
-            role: user.role,
-            department: user.department,
-            is_active: user.is_active
-          },
-          token: newToken
-        }
+          user,
+          access_token: newAccessToken,
+          refresh_token: newRefreshToken,
+        },
       };
-    } catch (error) {
-      console.error('Refresh token error:', error);
+    } catch (error: any) {
+      console.error('Token refresh error:', error);
       return {
         success: false,
-        message: 'Invalid refresh token'
+        message: 'Invalid or expired refresh token',
       };
     }
   }
 
-  /**
-   * Logout user (invalidate token on client side)
-   */
   static async logout(userId: string): Promise<AuthResponse> {
     try {
-      // Update last logout time
-      await supabaseAdmin
-        .from('users')
-        .update({ last_logout: new Date().toISOString() })
-        .eq('id', userId);
-
+      // In a real implementation, you might want to blacklist the token
+      // For now, we'll just return success
       return {
         success: true,
-        message: 'Logout successful'
+        message: 'Logout successful',
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
       return {
         success: false,
-        message: 'Internal server error during logout'
+        message: 'Logout failed',
       };
     }
   }

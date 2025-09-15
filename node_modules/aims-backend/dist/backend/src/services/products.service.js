@@ -35,7 +35,19 @@ class ProductsService {
                 query = query.or(`name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%,barcode.ilike.%${filters.search}%`);
             }
             if (filters.low_stock) {
-                query = query.lte('stock_quantity', supabaseClient_1.supabaseAdmin.raw('minimum_stock'));
+                const { data: lowStockData, error: lowStockError } = await supabaseClient_1.supabaseAdmin
+                    .rpc('get_products_with_low_stock_filter');
+                if (lowStockError)
+                    throw lowStockError;
+                return {
+                    products: lowStockData || [],
+                    pagination: {
+                        page: filters.page || 1,
+                        limit: filters.limit || 25,
+                        total: lowStockData?.length || 0,
+                        pages: Math.ceil((lowStockData?.length || 0) / (filters.limit || 25))
+                    }
+                };
             }
             const page = filters.page || 1;
             const limit = filters.limit || 25;
@@ -56,7 +68,8 @@ class ProductsService {
             };
         }
         catch (error) {
-            throw new Error(`Failed to fetch products: ${error}`);
+            console.error('Supabase error in getProducts:', error);
+            throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async getProductById(id) {
@@ -79,12 +92,11 @@ class ProductsService {
           ),
           inventory_levels:inventory_levels (
             id,
-            branch_id,
-            current_stock,
-            reserved_stock,
-            available_stock,
+            location_id,
+            quantity_on_hand,
+            reserved_quantity,
             reorder_point,
-            reorder_quantity
+            max_stock_level
           )
         `)
                 .eq('id', id)
@@ -94,7 +106,8 @@ class ProductsService {
             return data;
         }
         catch (error) {
-            throw new Error(`Failed to fetch product: ${error}`);
+            console.error('Supabase error in getProductById:', error);
+            throw new Error(`Failed to fetch product: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async createProduct(productData) {
@@ -109,7 +122,8 @@ class ProductsService {
             return data;
         }
         catch (error) {
-            throw new Error(`Failed to create product: ${error}`);
+            console.error('Supabase error in createProduct:', error);
+            throw new Error(`Failed to create product: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async updateProduct(id, productData) {
@@ -125,7 +139,8 @@ class ProductsService {
             return data;
         }
         catch (error) {
-            throw new Error(`Failed to update product: ${error}`);
+            console.error('Supabase error in updateProduct:', error);
+            throw new Error(`Failed to update product: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async deleteProduct(id) {
@@ -303,20 +318,24 @@ class ProductsService {
             name,
             unit_of_measure
           ),
-          branch:branch_id (
+          location:location_id (
             id,
             name,
-            city
+            address
           )
         `);
             if (filters.product_id) {
                 query = query.eq('product_id', filters.product_id);
             }
-            if (filters.branch_id) {
-                query = query.eq('branch_id', filters.branch_id);
+            if (filters.location_id) {
+                query = query.eq('location_id', filters.location_id);
             }
             if (filters.low_stock) {
-                query = query.lte('available_stock', supabaseClient_1.supabaseAdmin.raw('reorder_point'));
+                const { data: lowStockData, error: lowStockError } = await supabaseClient_1.supabaseAdmin
+                    .rpc('get_low_stock_inventory_levels');
+                if (lowStockError)
+                    throw lowStockError;
+                return lowStockData || [];
             }
             const { data, error } = await query.order('product_id');
             if (error)
@@ -432,33 +451,21 @@ class ProductsService {
             };
         }
         catch (error) {
-            throw new Error(`Failed to adjust stock: ${error}`);
+            console.error('Supabase error in adjustStock:', error);
+            throw new Error(`Failed to adjust stock: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async getLowStockProducts() {
         try {
             const { data, error } = await supabaseClient_1.supabaseAdmin
-                .from('products')
-                .select(`
-          *,
-          category:category_id (
-            id,
-            name
-          ),
-          supplier:supplier_id (
-            id,
-            name
-          )
-        `)
-                .lte('stock_quantity', supabaseClient_1.supabaseAdmin.raw('minimum_stock'))
-                .eq('is_active', true)
-                .order('stock_quantity');
+                .rpc('get_low_stock_products');
             if (error)
                 throw error;
             return data || [];
         }
         catch (error) {
-            throw new Error(`Failed to fetch low stock products: ${error}`);
+            console.error('Supabase error in getLowStockProducts:', error);
+            throw new Error(`Failed to fetch low stock products: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async getProductSalesReport(filters = {}) {

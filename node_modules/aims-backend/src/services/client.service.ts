@@ -6,7 +6,7 @@ export class ClientService {
       supabaseAdmin.from('products').select('id', { count: 'exact' }).eq('is_active', true),
       supabaseAdmin.from('categories').select('id', { count: 'exact' }).eq('is_active', true),
       supabaseAdmin.from('marketing_campaigns').select('id', { count: 'exact' }).eq('is_active', true),
-      supabaseAdmin.from('sales_orders').select('id', { count: 'exact' })
+      supabaseAdmin.from('sales_orders').select('id', { count: 'exact' }),
     ]);
 
     return {
@@ -14,7 +14,7 @@ export class ClientService {
       totalCategories: categoriesResult.count || 0,
       activeCampaigns: campaignsResult.count || 0,
       totalOrders: ordersResult.count || 0,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -55,8 +55,8 @@ export class ClientService {
         page,
         limit,
         total: count || 0,
-        pages: Math.ceil((count || 0) / limit)
-      }
+        pages: Math.ceil((count || 0) / limit),
+      },
     };
   }
 
@@ -172,8 +172,8 @@ export class ClientService {
         page,
         limit,
         total: count || 0,
-        pages: Math.ceil((count || 0) / limit)
-      }
+        pages: Math.ceil((count || 0) / limit),
+      },
     };
   }
 

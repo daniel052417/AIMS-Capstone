@@ -8,7 +8,7 @@ export class POSCashierController {
     const dashboard = await POSCashierService.getDashboard();
     res.json({
       success: true,
-      data: dashboard
+      data: dashboard,
     });
   });
 
@@ -18,7 +18,7 @@ export class POSCashierController {
     const result = await POSCashierService.getProducts(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -27,14 +27,14 @@ export class POSCashierController {
     if (!search) {
       return res.status(400).json({
         success: false,
-        message: 'Search term is required'
+        message: 'Search term is required',
       });
     }
 
     const products = await POSCashierService.searchProducts(search as string);
     res.json({
       success: true,
-      data: products
+      data: products,
     });
   });
 
@@ -43,7 +43,7 @@ export class POSCashierController {
     const product = await POSCashierService.getProductById(id);
     res.json({
       success: true,
-      data: product
+      data: product,
     });
   });
 
@@ -53,7 +53,7 @@ export class POSCashierController {
     const result = await POSCashierService.getCustomers(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -62,14 +62,14 @@ export class POSCashierController {
     if (!search) {
       return res.status(400).json({
         success: false,
-        message: 'Search term is required'
+        message: 'Search term is required',
       });
     }
 
     const customers = await POSCashierService.searchCustomers(search as string);
     res.json({
       success: true,
-      data: customers
+      data: customers,
     });
   });
 
@@ -78,7 +78,7 @@ export class POSCashierController {
     const customer = await POSCashierService.getCustomerById(id);
     res.json({
       success: true,
-      data: customer
+      data: customer,
     });
   });
 
@@ -87,7 +87,7 @@ export class POSCashierController {
     const customer = await POSCashierService.createCustomer(customerData);
     res.status(201).json({
       success: true,
-      data: customer
+      data: customer,
     });
   });
 
@@ -97,7 +97,7 @@ export class POSCashierController {
     const customer = await POSCashierService.updateCustomer(id, customerData);
     res.json({
       success: true,
-      data: customer
+      data: customer,
     });
   });
 
@@ -107,7 +107,7 @@ export class POSCashierController {
     const result = await POSCashierService.getTransactions(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -116,7 +116,7 @@ export class POSCashierController {
     const transaction = await POSCashierService.getTransactionById(id);
     res.json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -125,7 +125,7 @@ export class POSCashierController {
     const transaction = await POSCashierService.createTransaction(transactionData);
     res.status(201).json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -135,7 +135,7 @@ export class POSCashierController {
     const transaction = await POSCashierService.updateTransaction(id, transactionData);
     res.json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -144,7 +144,7 @@ export class POSCashierController {
     const transaction = await POSCashierService.cancelTransaction(id);
     res.json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -154,7 +154,7 @@ export class POSCashierController {
     const transaction = await POSCashierService.createSalesTransaction(transactionData);
     res.status(201).json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -163,7 +163,7 @@ export class POSCashierController {
     const transaction = await POSCashierService.getSalesTransactionById(id);
     res.json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -173,7 +173,7 @@ export class POSCashierController {
     const items = await POSCashierService.getTransactionItems(transactionId);
     res.json({
       success: true,
-      data: items
+      data: items,
     });
   });
 
@@ -182,7 +182,7 @@ export class POSCashierController {
     const item = await POSCashierService.createTransactionItem(itemData);
     res.status(201).json({
       success: true,
-      data: item
+      data: item,
     });
   });
 
@@ -192,7 +192,7 @@ export class POSCashierController {
     const payment = await POSCashierService.processPayment(paymentData);
     res.status(201).json({
       success: true,
-      data: payment
+      data: payment,
     });
   });
 
@@ -201,7 +201,7 @@ export class POSCashierController {
     const payments = await POSCashierService.getPayments(transactionId);
     res.json({
       success: true,
-      data: payments
+      data: payments,
     });
   });
 
@@ -211,7 +211,7 @@ export class POSCashierController {
     const session = await POSCashierService.startSession(sessionData);
     res.status(201).json({
       success: true,
-      data: session
+      data: session,
     });
   });
 
@@ -221,7 +221,7 @@ export class POSCashierController {
     const session = await POSCashierService.endSession(id, closingData);
     res.json({
       success: true,
-      data: session
+      data: session,
     });
   });
 
@@ -230,7 +230,7 @@ export class POSCashierController {
     const session = await POSCashierService.getCurrentSession(cashierId);
     res.json({
       success: true,
-      data: session
+      data: session,
     });
   });
 
@@ -239,7 +239,7 @@ export class POSCashierController {
     const session = await POSCashierService.getSessionById(id);
     res.json({
       success: true,
-      data: session
+      data: session,
     });
   });
 
@@ -249,7 +249,7 @@ export class POSCashierController {
     const receipt = await POSCashierService.generateReceipt(transactionId);
     res.json({
       success: true,
-      data: receipt
+      data: receipt,
     });
   });
 
@@ -259,7 +259,7 @@ export class POSCashierController {
     const report = await POSCashierService.getDailyReport(date);
     res.json({
       success: true,
-      data: report
+      data: report,
     });
   });
 
@@ -268,7 +268,7 @@ export class POSCashierController {
     const report = await POSCashierService.getSalesReport(filters);
     res.json({
       success: true,
-      data: report
+      data: report,
     });
   });
 
@@ -278,7 +278,7 @@ export class POSCashierController {
     const inventory = await POSCashierService.checkInventory(productId);
     res.json({
       success: true,
-      data: inventory
+      data: inventory,
     });
   });
 
@@ -286,7 +286,7 @@ export class POSCashierController {
     const items = await POSCashierService.getLowStockItems();
     res.json({
       success: true,
-      data: items
+      data: items,
     });
   });
 
@@ -295,7 +295,7 @@ export class POSCashierController {
     const products = await POSCashierService.getQuickSales();
     res.json({
       success: true,
-      data: products
+      data: products,
     });
   });
 }

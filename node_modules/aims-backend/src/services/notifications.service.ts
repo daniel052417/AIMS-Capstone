@@ -2,7 +2,7 @@ import { supabaseAdmin } from '../config/supabaseClient';
 import type { 
   Notification, 
   NotificationTemplate,
-  ClientNotification
+  ClientNotification,
 } from '@shared/types/database';
 
 export class NotificationsService {
@@ -44,8 +44,8 @@ export class NotificationsService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch notifications: ${error}`);
@@ -73,7 +73,7 @@ export class NotificationsService {
         .from('notifications')
         .update({
           is_read: true,
-          read_at: new Date().toISOString()
+          read_at: new Date().toISOString(),
         })
         .eq('id', notificationId)
         .eq('user_id', userId)
@@ -93,7 +93,7 @@ export class NotificationsService {
         .from('notifications')
         .update({
           is_read: true,
-          read_at: new Date().toISOString()
+          read_at: new Date().toISOString(),
         })
         .eq('user_id', userId)
         .eq('is_read', false)
@@ -250,8 +250,8 @@ export class NotificationsService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch client notifications: ${error}`);
@@ -309,7 +309,7 @@ export class NotificationsService {
         .from('client_notifications')
         .update({
           sent_at: new Date().toISOString(),
-          is_active: false
+          is_active: false,
         })
         .eq('id', id)
         .select()
@@ -338,7 +338,7 @@ export class NotificationsService {
         type: notificationData.type,
         data: notificationData.data,
         is_read: false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       }));
 
       const { data, error } = await supabaseAdmin
@@ -389,7 +389,7 @@ export class NotificationsService {
         type: notificationData.type,
         data: notificationData.data,
         is_read: false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       }));
 
       const { data, error } = await supabaseAdmin
@@ -410,11 +410,11 @@ export class NotificationsService {
       const [
         totalNotifications,
         unreadNotifications,
-        notificationsByType
+        notificationsByType,
       ] = await Promise.all([
         supabaseAdmin.from('notifications').select('id', { count: 'exact' }).eq('user_id', userId),
         supabaseAdmin.from('notifications').select('id', { count: 'exact' }).eq('user_id', userId).eq('is_read', false),
-        supabaseAdmin.from('notifications').select('type').eq('user_id', userId)
+        supabaseAdmin.from('notifications').select('type').eq('user_id', userId),
       ]);
 
       // Count by type
@@ -426,7 +426,7 @@ export class NotificationsService {
       return {
         total: totalNotifications.count || 0,
         unread: unreadNotifications.count || 0,
-        byType: typeCounts
+        byType: typeCounts,
       };
     } catch (error) {
       throw new Error(`Failed to fetch notification stats: ${error}`);

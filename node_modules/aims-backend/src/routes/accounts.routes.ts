@@ -11,85 +11,85 @@ router.use(authenticateToken);
 // Account Management Routes
 router.get('/accounts', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getAccounts)
+  asyncHandler(accountsController.getAccounts),
 );
 
 router.get('/accounts/:id', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getAccountById)
+  asyncHandler(accountsController.getAccountById),
 );
 
 router.post('/accounts', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.createAccount)
+  asyncHandler(accountsController.createAccount),
 );
 
 router.put('/accounts/:id', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.updateAccount)
+  asyncHandler(accountsController.updateAccount),
 );
 
 router.delete('/accounts/:id', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.deleteAccount)
+  asyncHandler(accountsController.deleteAccount),
 );
 
 // GL Transaction Routes
 router.get('/gl-transactions', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getGLTransactions)
+  asyncHandler(accountsController.getGLTransactions),
 );
 
 router.get('/gl-transactions/:id', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getGLTransactionById)
+  asyncHandler(accountsController.getGLTransactionById),
 );
 
 router.post('/gl-transactions', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.createGLTransaction)
+  asyncHandler(accountsController.createGLTransaction),
 );
 
 router.put('/gl-transactions/:id/post', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.postGLTransaction)
+  asyncHandler(accountsController.postGLTransaction),
 );
 
 // Expense Management Routes
 router.get('/expenses', 
   requireRole(['super_admin', 'accounting_admin', 'accounting_staff']), 
-  asyncHandler(accountsController.getExpenses)
+  asyncHandler(accountsController.getExpenses),
 );
 
 router.post('/expenses', 
   requireRole(['super_admin', 'accounting_admin', 'accounting_staff']), 
-  asyncHandler(accountsController.createExpense)
+  asyncHandler(accountsController.createExpense),
 );
 
 router.put('/expenses/:id', 
   requireRole(['super_admin', 'accounting_admin', 'accounting_staff']), 
-  asyncHandler(accountsController.updateExpense)
+  asyncHandler(accountsController.updateExpense),
 );
 
 router.put('/expenses/:id/approve', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.approveExpense)
+  asyncHandler(accountsController.approveExpense),
 );
 
 // Financial Reports Routes
 router.get('/reports/trial-balance', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getTrialBalance)
+  asyncHandler(accountsController.getTrialBalance),
 );
 
 router.get('/reports/profit-loss', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getProfitAndLoss)
+  asyncHandler(accountsController.getProfitAndLoss),
 );
 
 router.get('/reports/balance-sheet', 
   requireRole(['super_admin', 'accounting_admin']), 
-  asyncHandler(accountsController.getBalanceSheet)
+  asyncHandler(accountsController.getBalanceSheet),
 );
 
 export default router;

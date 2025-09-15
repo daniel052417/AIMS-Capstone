@@ -8,7 +8,6 @@ export interface RegisterData {
     first_name: string;
     last_name: string;
     role?: string;
-    department?: string;
 }
 export interface AuthResponse {
     success: boolean;
@@ -20,7 +19,6 @@ export interface AuthResponse {
             first_name: string;
             last_name: string;
             role: string;
-            department?: string;
             is_active: boolean;
         };
         token: string;

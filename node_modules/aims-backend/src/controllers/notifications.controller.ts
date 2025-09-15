@@ -9,7 +9,7 @@ export const getNotifications = async (req: AuthenticatedRequest, res: Response)
     if (!userId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -20,20 +20,20 @@ export const getNotifications = async (req: AuthenticatedRequest, res: Response)
       date_from: req.query.date_from as string,
       date_to: req.query.date_to as string,
       page: parseInt(req.query.page as string) || 1,
-      limit: parseInt(req.query.limit as string) || 25
+      limit: parseInt(req.query.limit as string) || 25,
     };
 
     const result = await NotificationsService.getNotifications(userId, filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching notifications:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notifications'
+      message: 'Failed to fetch notifications',
     });
   }
 };
@@ -42,7 +42,7 @@ export const createNotification = async (req: AuthenticatedRequest, res: Respons
   try {
     const notificationData = {
       ...req.body,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     const notification = await NotificationsService.createNotification(notificationData);
@@ -50,13 +50,13 @@ export const createNotification = async (req: AuthenticatedRequest, res: Respons
     res.status(201).json({
       success: true,
       data: notification,
-      message: 'Notification created successfully'
+      message: 'Notification created successfully',
     });
   } catch (error) {
     console.error('Error creating notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create notification'
+      message: 'Failed to create notification',
     });
   }
 };
@@ -69,7 +69,7 @@ export const markAsRead = async (req: AuthenticatedRequest, res: Response): Prom
     if (!userId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -79,13 +79,13 @@ export const markAsRead = async (req: AuthenticatedRequest, res: Response): Prom
     res.json({
       success: true,
       data: notification,
-      message: 'Notification marked as read'
+      message: 'Notification marked as read',
     });
   } catch (error) {
     console.error('Error marking notification as read:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to mark notification as read'
+      message: 'Failed to mark notification as read',
     });
   }
 };
@@ -97,7 +97,7 @@ export const markAllAsRead = async (req: AuthenticatedRequest, res: Response): P
     if (!userId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -107,13 +107,13 @@ export const markAllAsRead = async (req: AuthenticatedRequest, res: Response): P
     res.json({
       success: true,
       data: notifications,
-      message: 'All notifications marked as read'
+      message: 'All notifications marked as read',
     });
   } catch (error) {
     console.error('Error marking all notifications as read:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to mark all notifications as read'
+      message: 'Failed to mark all notifications as read',
     });
   }
 };
@@ -126,7 +126,7 @@ export const deleteNotification = async (req: AuthenticatedRequest, res: Respons
     if (!userId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -135,13 +135,13 @@ export const deleteNotification = async (req: AuthenticatedRequest, res: Respons
     
     res.json({
       success: true,
-      message: 'Notification deleted successfully'
+      message: 'Notification deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete notification'
+      message: 'Failed to delete notification',
     });
   }
 };
@@ -152,20 +152,20 @@ export const getNotificationTemplates = async (req: AuthenticatedRequest, res: R
     const filters = {
       template_type: req.query.template_type as string,
       is_active: req.query.is_active ? req.query.is_active === 'true' : undefined,
-      search: req.query.search as string
+      search: req.query.search as string,
     };
 
     const templates = await NotificationsService.getNotificationTemplates(filters);
     
     res.json({
       success: true,
-      data: templates
+      data: templates,
     });
   } catch (error) {
     console.error('Error fetching notification templates:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification templates'
+      message: 'Failed to fetch notification templates',
     });
   }
 };
@@ -177,13 +177,13 @@ export const getNotificationTemplateById = async (req: AuthenticatedRequest, res
     
     res.json({
       success: true,
-      data: template
+      data: template,
     });
   } catch (error) {
     console.error('Error fetching notification template:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification template'
+      message: 'Failed to fetch notification template',
     });
   }
 };
@@ -193,7 +193,7 @@ export const createNotificationTemplate = async (req: AuthenticatedRequest, res:
     const templateData = {
       ...req.body,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const template = await NotificationsService.createNotificationTemplate(templateData);
@@ -201,13 +201,13 @@ export const createNotificationTemplate = async (req: AuthenticatedRequest, res:
     res.status(201).json({
       success: true,
       data: template,
-      message: 'Notification template created successfully'
+      message: 'Notification template created successfully',
     });
   } catch (error) {
     console.error('Error creating notification template:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create notification template'
+      message: 'Failed to create notification template',
     });
   }
 };
@@ -217,7 +217,7 @@ export const updateNotificationTemplate = async (req: AuthenticatedRequest, res:
     const { id } = req.params;
     const templateData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const template = await NotificationsService.updateNotificationTemplate(id, templateData);
@@ -225,13 +225,13 @@ export const updateNotificationTemplate = async (req: AuthenticatedRequest, res:
     res.json({
       success: true,
       data: template,
-      message: 'Notification template updated successfully'
+      message: 'Notification template updated successfully',
     });
   } catch (error) {
     console.error('Error updating notification template:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update notification template'
+      message: 'Failed to update notification template',
     });
   }
 };
@@ -243,13 +243,13 @@ export const deleteNotificationTemplate = async (req: AuthenticatedRequest, res:
     
     res.json({
       success: true,
-      message: 'Notification template deleted successfully'
+      message: 'Notification template deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting notification template:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete notification template'
+      message: 'Failed to delete notification template',
     });
   }
 };
@@ -263,20 +263,20 @@ export const getClientNotifications = async (req: AuthenticatedRequest, res: Res
       scheduled_at: req.query.scheduled_at as string,
       search: req.query.search as string,
       page: parseInt(req.query.page as string) || 1,
-      limit: parseInt(req.query.limit as string) || 25
+      limit: parseInt(req.query.limit as string) || 25,
     };
 
     const result = await NotificationsService.getClientNotifications(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching client notifications:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch client notifications'
+      message: 'Failed to fetch client notifications',
     });
   }
 };
@@ -287,7 +287,7 @@ export const createClientNotification = async (req: AuthenticatedRequest, res: R
       ...req.body,
       created_by: req.user?.id,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const notification = await NotificationsService.createClientNotification(notificationData);
@@ -295,13 +295,13 @@ export const createClientNotification = async (req: AuthenticatedRequest, res: R
     res.status(201).json({
       success: true,
       data: notification,
-      message: 'Client notification created successfully'
+      message: 'Client notification created successfully',
     });
   } catch (error) {
     console.error('Error creating client notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create client notification'
+      message: 'Failed to create client notification',
     });
   }
 };
@@ -311,7 +311,7 @@ export const updateClientNotification = async (req: AuthenticatedRequest, res: R
     const { id } = req.params;
     const notificationData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const notification = await NotificationsService.updateClientNotification(id, notificationData);
@@ -319,13 +319,13 @@ export const updateClientNotification = async (req: AuthenticatedRequest, res: R
     res.json({
       success: true,
       data: notification,
-      message: 'Client notification updated successfully'
+      message: 'Client notification updated successfully',
     });
   } catch (error) {
     console.error('Error updating client notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update client notification'
+      message: 'Failed to update client notification',
     });
   }
 };
@@ -337,13 +337,13 @@ export const deleteClientNotification = async (req: AuthenticatedRequest, res: R
     
     res.json({
       success: true,
-      message: 'Client notification deleted successfully'
+      message: 'Client notification deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting client notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete client notification'
+      message: 'Failed to delete client notification',
     });
   }
 };
@@ -356,13 +356,13 @@ export const sendClientNotification = async (req: AuthenticatedRequest, res: Res
     res.json({
       success: true,
       data: notification,
-      message: 'Client notification sent successfully'
+      message: 'Client notification sent successfully',
     });
   } catch (error) {
     console.error('Error sending client notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send client notification'
+      message: 'Failed to send client notification',
     });
   }
 };
@@ -375,13 +375,13 @@ export const sendBulkNotification = async (req: AuthenticatedRequest, res: Respo
     res.json({
       success: true,
       data: notifications,
-      message: 'Bulk notification sent successfully'
+      message: 'Bulk notification sent successfully',
     });
   } catch (error) {
     console.error('Error sending bulk notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send bulk notification'
+      message: 'Failed to send bulk notification',
     });
   }
 };
@@ -393,13 +393,13 @@ export const sendSystemNotification = async (req: AuthenticatedRequest, res: Res
     res.json({
       success: true,
       data: notifications,
-      message: 'System notification sent successfully'
+      message: 'System notification sent successfully',
     });
   } catch (error) {
     console.error('Error sending system notification:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send system notification'
+      message: 'Failed to send system notification',
     });
   }
 };
@@ -411,7 +411,7 @@ export const getNotificationStats = async (req: AuthenticatedRequest, res: Respo
     if (!userId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -420,13 +420,13 @@ export const getNotificationStats = async (req: AuthenticatedRequest, res: Respo
     
     res.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
     console.error('Error fetching notification stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification stats'
+      message: 'Failed to fetch notification stats',
     });
   }
 };

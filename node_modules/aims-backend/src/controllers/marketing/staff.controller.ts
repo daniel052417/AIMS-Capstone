@@ -6,14 +6,14 @@ export const getCampaigns = async (req: AuthenticatedRequest, res: Response): Pr
     res.json({
       success: true,
       data: {
-        message: 'Get marketing staff campaigns - implementation pending'
-      }
+        message: 'Get marketing staff campaigns - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error fetching campaigns:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch campaigns'
+      message: 'Failed to fetch campaigns',
     });
   }
 };
@@ -23,14 +23,14 @@ export const getCampaignById = async (req: AuthenticatedRequest, res: Response):
     res.json({
       success: true,
       data: {
-        message: 'Get campaign by ID - implementation pending'
-      }
+        message: 'Get campaign by ID - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error fetching campaign:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch campaign'
+      message: 'Failed to fetch campaign',
     });
   }
 };
@@ -40,14 +40,14 @@ export const createCampaign = async (req: AuthenticatedRequest, res: Response): 
     res.json({
       success: true,
       data: {
-        message: 'Create campaign - implementation pending'
-      }
+        message: 'Create campaign - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error creating campaign:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create campaign'
+      message: 'Failed to create campaign',
     });
   }
 };
@@ -57,14 +57,14 @@ export const updateCampaign = async (req: AuthenticatedRequest, res: Response): 
     res.json({
       success: true,
       data: {
-        message: 'Update campaign - implementation pending'
-      }
+        message: 'Update campaign - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error updating campaign:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update campaign'
+      message: 'Failed to update campaign',
     });
   }
 };
@@ -74,14 +74,14 @@ export const getTemplates = async (req: AuthenticatedRequest, res: Response): Pr
     res.json({
       success: true,
       data: {
-        message: 'Get templates - implementation pending'
-      }
+        message: 'Get templates - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error fetching templates:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch templates'
+      message: 'Failed to fetch templates',
     });
   }
 };
@@ -91,14 +91,14 @@ export const getAnalytics = async (req: AuthenticatedRequest, res: Response): Pr
     res.json({
       success: true,
       data: {
-        message: 'Get marketing analytics - implementation pending'
-      }
+        message: 'Get marketing analytics - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error fetching analytics:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch analytics'
+      message: 'Failed to fetch analytics',
     });
   }
 };

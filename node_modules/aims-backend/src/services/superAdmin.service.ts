@@ -8,7 +8,7 @@ import type {
   SystemSetting,
   StaffWithAccounts,
   GetUserAccessibleComponentsResult,
-  GetUserPermissionsResult
+  GetUserPermissionsResult,
 } from '@shared/types/database';
 
 export class SuperAdminService {
@@ -20,13 +20,13 @@ export class SuperAdminService {
         staffResult,
         rolesResult,
         permissionsResult,
-        auditLogsResult
+        auditLogsResult,
       ] = await Promise.all([
         supabaseAdmin.from('users').select('id', { count: 'exact' }),
         supabaseAdmin.from('staff').select('id', { count: 'exact' }),
         supabaseAdmin.from('roles').select('id', { count: 'exact' }),
         supabaseAdmin.from('permissions').select('id', { count: 'exact' }),
-        supabaseAdmin.from('audit_logs').select('id', { count: 'exact' })
+        supabaseAdmin.from('audit_logs').select('id', { count: 'exact' }),
       ]);
 
       return {
@@ -39,8 +39,8 @@ export class SuperAdminService {
           status: 'healthy',
           uptime: process.uptime(),
           memory: process.memoryUsage(),
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch dashboard data: ${error}`);
@@ -92,8 +92,8 @@ export class SuperAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch users: ${error}`);
@@ -329,8 +329,8 @@ export class SuperAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch staff with accounts: ${error}`);
@@ -388,7 +388,7 @@ export class SuperAdminService {
         .upsert({
           key,
           value,
-          updated_by: updatedBy
+          updated_by: updatedBy,
         })
         .select()
         .single();
@@ -434,8 +434,8 @@ export class SuperAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch audit logs: ${error}`);
@@ -487,7 +487,7 @@ export class SuperAdminService {
       const { data, error } = await supabaseAdmin
         .rpc('user_has_permission', { 
           user_uuid: userId, 
-          permission_name: permissionName 
+          permission_name: permissionName, 
         });
 
       if (error) throw error;
@@ -511,7 +511,7 @@ export class SuperAdminService {
         database: dbError ? 'disconnected' : 'connected',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       return {
@@ -520,7 +520,7 @@ export class SuperAdminService {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         timestamp: new Date().toISOString(),
-        error: error
+        error,
       };
     }
   }
@@ -532,13 +532,13 @@ export class SuperAdminService {
         staffResult,
         rolesResult,
         permissionsResult,
-        auditLogsResult
+        auditLogsResult,
       ] = await Promise.all([
         supabaseAdmin.from('users').select('id', { count: 'exact' }),
         supabaseAdmin.from('staff').select('id', { count: 'exact' }),
         supabaseAdmin.from('roles').select('id', { count: 'exact' }),
         supabaseAdmin.from('permissions').select('id', { count: 'exact' }),
-        supabaseAdmin.from('audit_logs').select('id', { count: 'exact' })
+        supabaseAdmin.from('audit_logs').select('id', { count: 'exact' }),
       ]);
 
       return {
@@ -547,7 +547,7 @@ export class SuperAdminService {
         roles: rolesResult.count || 0,
         permissions: permissionsResult.count || 0,
         auditLogs: auditLogsResult.count || 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch system stats: ${error}`);

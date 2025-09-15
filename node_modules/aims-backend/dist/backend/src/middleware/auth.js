@@ -27,7 +27,6 @@ const authenticateToken = async (req, res, next) => {
         first_name,
         last_name,
         role,
-        department,
         is_active,
         created_at,
         updated_at
@@ -56,7 +55,6 @@ const authenticateToken = async (req, res, next) => {
             id: user.id,
             email: user.email,
             role: user.role,
-            department: user.department,
             permissions: permissions?.map(p => p.permission) || []
         };
         next();

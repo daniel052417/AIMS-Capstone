@@ -5,8 +5,17 @@ import type {
   Supplier, 
   InventoryLevel, 
   InventoryMovement,
-  ProductWithDetails 
+  ProductWithDetails, 
 } from '@shared/types/database';
+import { ProductWithVariantsAndInventory, ProductVariantWithInventory, ProductUpdateRequest, ProductVariantUpdateRequest } from '../types/product';
+
+// Define CRUDResponse interface locally to avoid import issues
+interface CRUDResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  errors?: string[];
+}
 
 export class ProductsService {
   // Product Management
@@ -54,8 +63,8 @@ export class ProductsService {
             page: filters.page || 1,
             limit: filters.limit || 25,
             total: lowStockData?.length || 0,
-            pages: Math.ceil((lowStockData?.length || 0) / (filters.limit || 25))
-          }
+            pages: Math.ceil((lowStockData?.length || 0) / (filters.limit || 25)),
+          },
         };
       }
 
@@ -76,8 +85,8 @@ export class ProductsService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       console.error('Supabase error in getProducts:', error);
@@ -85,41 +94,144 @@ export class ProductsService {
     }
   }
 
-  static async getProductById(id: string) {
+  static async getProductById(id: string): Promise<CRUDResponse<ProductWithVariantsAndInventory>> {
     try {
-      const { data, error } = await supabaseAdmin
+      // First, get the product with basic details
+      const { data: product, error: productError } = await supabaseAdmin
         .from('products')
         .select(`
           *,
-          category:category_id (
+          categories (
             id,
             name,
             description
           ),
-          supplier:supplier_id (
+          units_of_measure (
             id,
             name,
-            contact_person,
-            email,
-            phone
-          ),
-          inventory_levels:inventory_levels (
-            id,
-            location_id,
-            quantity_on_hand,
-            reserved_quantity,
-            reorder_point,
-            max_stock_level
+            abbreviation
           )
         `)
         .eq('id', id)
         .single();
 
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Supabase error in getProductById:', error);
-      throw new Error(`Failed to fetch product: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+      if (productError) {
+        return {
+          success: false,
+          message: productError.message || 'Product not found',
+        };
+      }
+
+      if (!product) {
+        return {
+          success: false,
+          message: 'Product not found',
+        };
+      }
+
+      // Get product variants with their inventory
+      const { data: variants, error: variantsError } = await supabaseAdmin
+        .from('product_variants')
+        .select(`
+          *,
+          inventory (
+            id,
+            branch_id,
+            quantity_on_hand,
+            quantity_reserved,
+            quantity_available,
+            reorder_level,
+            max_stock_level,
+            last_counted,
+            updated_at
+          )
+        `)
+        .eq('product_id', id)
+        .eq('is_active', true)
+        .order('name');
+
+      if (variantsError) {
+        console.error('Error fetching variants:', variantsError);
+        return {
+          success: false,
+          message: 'Failed to fetch product variants',
+        };
+      }
+
+      // Transform the data to match our interface
+      const productWithVariants: ProductWithVariantsAndInventory = {
+        ...product,
+        variants: variants?.map(variant => ({
+          ...variant,
+          inventory: variant.inventory || [],
+        })) || [],
+        category: product.categories,
+        unit_of_measure: product.units_of_measure,
+      };
+
+      return {
+        success: true,
+        message: 'Product retrieved successfully',
+        data: productWithVariants,
+      };
+    } catch (error: any) {
+      console.error('Error in getProductById:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to fetch product',
+      };
+    }
+  }
+
+  // Get product with variants only (without inventory) - lighter query
+  static async getProductWithVariants(id: string): Promise<CRUDResponse<any>> {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('products')
+        .select(`
+          *,
+          categories (
+            id,
+            name,
+            description
+          ),
+          units_of_measure (
+            id,
+            name,
+            abbreviation
+          ),
+          product_variants (
+            id,
+            name,
+            sku,
+            barcode,
+            price_modifier,
+            is_active,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message || 'Product not found',
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Product retrieved successfully',
+        data,
+      };
+    } catch (error: any) {
+      console.error('Error in getProductWithVariants:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to fetch product',
+      };
     }
   }
 
@@ -139,20 +251,357 @@ export class ProductsService {
     }
   }
 
-  static async updateProduct(id: string, productData: Partial<Product>) {
+  static async updateProduct(id: string, productData: ProductUpdateRequest): Promise<CRUDResponse<ProductWithVariantsAndInventory>> {
     try {
-      const { data, error } = await supabaseAdmin
+      // Step 1: Validate that product exists
+      const { data: existingProduct, error: productCheckError } = await supabaseAdmin
         .from('products')
-        .update(productData)
+        .select('id')
         .eq('id', id)
-        .select()
         .single();
 
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Supabase error in updateProduct:', error);
-      throw new Error(`Failed to update product: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+      if (productCheckError || !existingProduct) {
+        return {
+          success: false,
+          message: 'Product not found',
+        };
+      }
+
+      // Step 2: Prepare product update data (exclude variants)
+      const { variants, ...productUpdateData } = productData;
+      
+      // Only update product fields that exist in the products table
+      const allowedProductFields = [
+        'name', 'description', 'sku', 'category_id', 'brand', 
+        'unit_of_measure', 'weight', 'dimensions', 
+        'is_prescription_required', 'is_active',
+      ];
+      
+      const filteredProductData = Object.keys(productUpdateData)
+        .filter(key => allowedProductFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = productUpdateData[key];
+          return obj;
+        }, {} as any);
+
+      // Step 3: Update product if there are fields to update
+      let updatedProduct = existingProduct;
+      if (Object.keys(filteredProductData).length > 0) {
+        const { data: productResult, error: productError } = await supabaseAdmin
+          .from('products')
+          .update({
+            ...filteredProductData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (productError) {
+          return {
+            success: false,
+            message: `Failed to update product: ${productError.message}`,
+          };
+        }
+        updatedProduct = productResult;
+      }
+
+      // Step 4: Handle variants if provided
+      let updatedVariants: ProductVariantWithInventory[] = [];
+      if (variants && variants.length > 0) {
+        const variantResults = await this.updateProductVariants(id, variants);
+        if (!variantResults.success) {
+          return {
+            success: false,
+            message: `Failed to update variants: ${variantResults.message}`,
+          };
+        }
+        updatedVariants = variantResults.data || [];
+      } else {
+        // If no variants provided, fetch existing variants
+        const variantsResult = await this.getProductWithVariants(id);
+        if (variantsResult.success) {
+          updatedVariants = variantsResult.data || [];
+        }
+      }
+
+      // Step 5: Get complete product with all details
+      const completeProductResult = await this.getProductById(id);
+      if (!completeProductResult.success) {
+        return {
+          success: false,
+          message: 'Product updated but failed to fetch complete details',
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Product updated successfully',
+        data: completeProductResult.data,
+      };
+    } catch (error: any) {
+      console.error('Error in updateProduct:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to update product',
+      };
+    }
+  }
+
+  // Atomic update method with transaction support
+  static async updateProductAtomic(id: string, productData: ProductUpdateRequest): Promise<CRUDResponse<ProductWithVariantsAndInventory>> {
+    try {
+      // Step 1: Validate that product exists
+      const { data: existingProduct, error: productCheckError } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .eq('id', id)
+        .single();
+
+      if (productCheckError || !existingProduct) {
+        return {
+          success: false,
+          message: 'Product not found',
+        };
+      }
+
+      // Step 2: Prepare product update data
+      const { variants, ...productUpdateData } = productData;
+      
+      const allowedProductFields = [
+        'name', 'description', 'sku', 'category_id', 'brand', 
+        'unit_of_measure', 'weight', 'dimensions', 
+        'is_prescription_required', 'is_active',
+      ];
+      
+      const filteredProductData = Object.keys(productUpdateData)
+        .filter(key => allowedProductFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = productUpdateData[key];
+          return obj;
+        }, {} as any);
+
+      // Step 3: Store original data for rollback
+      const originalProduct = await supabaseAdmin
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      const originalVariants = await supabaseAdmin
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', id);
+
+      // Step 4: Update product
+      if (Object.keys(filteredProductData).length > 0) {
+        const { error: productError } = await supabaseAdmin
+          .from('products')
+          .update({
+            ...filteredProductData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', id);
+
+        if (productError) {
+          return {
+            success: false,
+            message: `Failed to update product: ${productError.message}`,
+          };
+        }
+      }
+
+      // Step 5: Update variants if provided
+      if (variants && variants.length > 0) {
+        const variantResults = await this.updateProductVariantsAtomic(id, variants);
+        if (!variantResults.success) {
+          // Rollback product changes
+          if (Object.keys(filteredProductData).length > 0) {
+            await supabaseAdmin
+              .from('products')
+              .update(originalProduct.data)
+              .eq('id', id);
+          }
+          
+          return {
+            success: false,
+            message: `Failed to update variants: ${variantResults.message}`,
+          };
+        }
+      }
+
+      // Step 6: Get complete updated product
+      const completeProductResult = await this.getProductById(id);
+      if (!completeProductResult.success) {
+        return {
+          success: false,
+          message: 'Product updated but failed to fetch complete details',
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Product updated successfully',
+        data: completeProductResult.data,
+      };
+    } catch (error: any) {
+      console.error('Error in updateProductAtomic:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to update product',
+      };
+    }
+  }
+
+  // Helper method to update product variants with atomic operations
+  private static async updateProductVariantsAtomic(productId: string, variants: ProductVariantUpdateRequest[]): Promise<CRUDResponse<ProductVariantWithInventory[]>> {
+    try {
+      const updatedVariants: ProductVariantWithInventory[] = [];
+
+      for (const variantData of variants) {
+        if (variantData.id) {
+          // Update existing variant
+          const { data: updatedVariant, error: variantError } = await supabaseAdmin
+            .from('product_variants')
+            .update({
+              ...variantData,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', variantData.id)
+            .eq('product_id', productId)
+            .select()
+            .single();
+
+          if (variantError) {
+            return {
+              success: false,
+              message: `Failed to update variant ${variantData.id}: ${variantError.message}`,
+            };
+          }
+
+          // Get inventory for this variant
+          const { data: inventory } = await supabaseAdmin
+            .from('inventory')
+            .select('*')
+            .eq('product_variant_id', variantData.id);
+
+          updatedVariants.push({
+            ...updatedVariant,
+            inventory: inventory || [],
+          });
+        } else {
+          // Create new variant
+          const { data: newVariant, error: createError } = await supabaseAdmin
+            .from('product_variants')
+            .insert({
+              ...variantData,
+              product_id: productId,
+              created_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            return {
+              success: false,
+              message: `Failed to create variant: ${createError.message}`,
+            };
+          }
+
+          updatedVariants.push({
+            ...newVariant,
+            inventory: [],
+          });
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Variants updated successfully',
+        data: updatedVariants,
+      };
+    } catch (error: any) {
+      console.error('Error updating variants atomically:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to update variants',
+      };
+    }
+  }
+
+  // Helper method to update product variants (non-atomic version)
+  private static async updateProductVariants(productId: string, variants: ProductVariantUpdateRequest[]): Promise<CRUDResponse<ProductVariantWithInventory[]>> {
+    try {
+      const updatedVariants: ProductVariantWithInventory[] = [];
+
+      for (const variantData of variants) {
+        if (variantData.id) {
+          // Update existing variant
+          const { data: updatedVariant, error: variantError } = await supabaseAdmin
+            .from('product_variants')
+            .update({
+              ...variantData,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', variantData.id)
+            .eq('product_id', productId)
+            .select()
+            .single();
+
+          if (variantError) {
+            return {
+              success: false,
+              message: `Failed to update variant ${variantData.id}: ${variantError.message}`,
+            };
+          }
+
+          // Get inventory for this variant
+          const { data: inventory } = await supabaseAdmin
+            .from('inventory')
+            .select('*')
+            .eq('product_variant_id', variantData.id);
+
+          updatedVariants.push({
+            ...updatedVariant,
+            inventory: inventory || [],
+          });
+        } else {
+          // Create new variant
+          const { data: newVariant, error: createError } = await supabaseAdmin
+            .from('product_variants')
+            .insert({
+              ...variantData,
+              product_id: productId,
+              created_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            return {
+              success: false,
+              message: `Failed to create variant: ${createError.message}`,
+            };
+          }
+
+          updatedVariants.push({
+            ...newVariant,
+            inventory: [],
+          });
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Variants updated successfully',
+        data: updatedVariants,
+      };
+    } catch (error: any) {
+      console.error('Error updating variants:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to update variants',
+      };
     }
   }
 
@@ -445,11 +894,11 @@ export class ProductsService {
       // Create inventory movement record
       const movementData = {
         product_id: productId,
-        movement_type: movementType,
+        movement_type: movementType as 'in' | 'out' | 'transfer' | 'adjustment',
         quantity: Math.abs(quantity),
-        notes: notes,
+        notes,
         created_by_user_id: createdByUserId,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       const movement = await this.createInventoryMovement(movementData);
@@ -471,7 +920,7 @@ export class ProductsService {
         .from('products')
         .update({ 
           stock_quantity: newStockQuantity,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', productId);
 
@@ -479,7 +928,7 @@ export class ProductsService {
 
       return {
         movement,
-        newStockQuantity
+        newStockQuantity,
       };
     } catch (error) {
       console.error('Supabase error in adjustStock:', error);
@@ -507,7 +956,7 @@ export class ProductsService {
         .rpc('get_product_sales_report', {
           p_date_from: filters.date_from,
           p_date_to: filters.date_to,
-          p_product_id: filters.product_id
+          p_product_id: filters.product_id,
         });
 
       if (error) throw error;

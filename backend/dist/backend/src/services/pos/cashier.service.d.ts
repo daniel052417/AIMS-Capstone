@@ -1,11 +1,13 @@
-import type { POSTransaction, POSSession, Customer, SalesTransaction, TransactionItem, Payment } from '@shared/types/database';
+import type { Customer, SalesTransaction, TransactionItem, Payment, POSSession } from '@shared/types/database';
 export declare class POSCashierService {
     static getDashboard(): Promise<{
-        totalTransactions: number;
-        totalProducts: number;
-        totalCustomers: number;
-        activeSessions: number;
-        timestamp: string;
+        totalSalesToday: any;
+        totalTransactionsToday: any;
+        totalCustomersToday: any;
+        averageTransactionValue: any;
+        lowStockProducts: any;
+        recentTransactions: any;
+        topProducts: any;
     }>;
     static getProducts(filters?: any): Promise<{
         products: any[];
@@ -23,9 +25,33 @@ export declare class POSCashierService {
         unit_price: any;
         stock_quantity: any;
         barcode: any;
-        unit_of_measure: any;
+        category: {
+            name: any;
+        }[];
     }[]>;
     static getProductById(id: string): Promise<any>;
+    static checkInventory(productId: string): Promise<{
+        isLowStock: boolean;
+        isOutOfStock: boolean;
+        id: any;
+        sku: any;
+        name: any;
+        stock_quantity: any;
+        minimum_stock: any;
+        maximum_stock: any;
+    }>;
+    static getLowStockItems(): Promise<{
+        id: any;
+        sku: any;
+        name: any;
+        stock_quantity: any;
+        minimum_stock: any;
+        unit_of_measure: any;
+        category: {
+            name: any;
+        }[];
+    }[]>;
+    static getQuickSales(): Promise<any>;
     static getCustomers(filters?: any): Promise<{
         customers: any[];
         pagination: {
@@ -58,8 +84,8 @@ export declare class POSCashierService {
         };
     }>;
     static getTransactionById(id: string): Promise<any>;
-    static createTransaction(transactionData: Partial<POSTransaction>): Promise<any>;
-    static updateTransaction(id: string, transactionData: Partial<POSTransaction>): Promise<any>;
+    static createTransaction(transactionData: Partial<SalesTransaction>): Promise<any>;
+    static updateTransaction(id: string, transactionData: Partial<SalesTransaction>): Promise<any>;
     static cancelTransaction(id: string): Promise<any>;
     static createSalesTransaction(transactionData: Partial<SalesTransaction>): Promise<any>;
     static getSalesTransactionById(id: string): Promise<any>;
@@ -68,45 +94,27 @@ export declare class POSCashierService {
     static processPayment(paymentData: Partial<Payment>): Promise<any>;
     static getPayments(transactionId: string): Promise<any[]>;
     static startSession(sessionData: Partial<POSSession>): Promise<any>;
-    static endSession(id: string, closingData: Partial<POSSession>): Promise<any>;
+    static endSession(id: string, closingData: any): Promise<any>;
     static getCurrentSession(cashierId: string): Promise<any>;
     static getSessionById(id: string): Promise<any>;
-    static generateReceipt(transactionId: string): Promise<{
-        transaction: any;
-        items: any[];
-        payments: any[];
-        generated_at: string;
-    }>;
-    static getDailyReport(date: string): Promise<{
-        date: string;
-        totalSales: any;
-        totalTransactions: number;
-        transactions: any[];
-    }>;
+    static generateReceipt(transactionId: string): Promise<any>;
+    static getDailyReport(date: string): Promise<any>;
     static getSalesReport(filters?: any): Promise<{
-        totalSales: any;
-        totalTransactions: number;
-        transactions: any[];
-        filters: any;
+        summary: {
+            totalSales: number;
+            totalTransactions: number;
+            averageTransaction: number;
+        };
+        transactions: {
+            id: any;
+            transaction_date: any;
+            total_amount: any;
+            payment_status: any;
+            customer: {
+                first_name: any;
+                last_name: any;
+            }[];
+        }[];
     }>;
-    static checkInventory(productId: string): Promise<{
-        stock_quantity: any;
-        minimum_stock: any;
-        maximum_stock: any;
-    }>;
-    static getLowStockItems(): Promise<{
-        id: any;
-        sku: any;
-        name: any;
-        stock_quantity: any;
-        minimum_stock: any;
-    }[]>;
-    static getQuickSales(): Promise<{
-        id: any;
-        sku: any;
-        name: any;
-        unit_price: any;
-        barcode: any;
-    }[]>;
 }
 //# sourceMappingURL=cashier.service.d.ts.map

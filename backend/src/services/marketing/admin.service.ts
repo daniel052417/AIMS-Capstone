@@ -6,7 +6,7 @@ import type {
   CampaignSchedule,
   ClientNotification,
   NotificationTemplate,
-  MarketingAuditLog
+  MarketingAuditLog,
 } from '@shared/types/database';
 
 export class MarketingAdminService {
@@ -17,12 +17,12 @@ export class MarketingAdminService {
         campaignsResult,
         templatesResult,
         notificationsResult,
-        analyticsResult
+        analyticsResult,
       ] = await Promise.all([
         supabaseAdmin.from('marketing_campaigns').select('id', { count: 'exact' }),
         supabaseAdmin.from('campaign_templates').select('id', { count: 'exact' }),
         supabaseAdmin.from('client_notifications').select('id', { count: 'exact' }),
-        supabaseAdmin.from('campaign_analytics').select('id', { count: 'exact' })
+        supabaseAdmin.from('campaign_analytics').select('id', { count: 'exact' }),
       ]);
 
       return {
@@ -30,7 +30,7 @@ export class MarketingAdminService {
         totalTemplates: templatesResult.count || 0,
         totalNotifications: notificationsResult.count || 0,
         totalAnalytics: analyticsResult.count || 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch marketing dashboard: ${error}`);
@@ -84,8 +84,8 @@ export class MarketingAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch campaigns: ${error}`);
@@ -166,7 +166,7 @@ export class MarketingAdminService {
         .update({
           is_published: true,
           is_active: true,
-          publish_date: new Date().toISOString()
+          publish_date: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -186,7 +186,7 @@ export class MarketingAdminService {
         .update({
           is_published: false,
           is_active: false,
-          unpublish_date: new Date().toISOString()
+          unpublish_date: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -233,8 +233,8 @@ export class MarketingAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch templates: ${error}`);
@@ -344,8 +344,8 @@ export class MarketingAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch analytics: ${error}`);
@@ -476,8 +476,8 @@ export class MarketingAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch notifications: ${error}`);
@@ -623,8 +623,8 @@ export class MarketingAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch marketing audit logs: ${error}`);

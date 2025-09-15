@@ -1,5 +1,7 @@
 // Backend-specific types
 // TODO: Implement backend types
+export * from './auth';
+export * from './database';
 
 export interface ApiResponse<T = any> {
   success: boolean;

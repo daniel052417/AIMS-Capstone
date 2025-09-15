@@ -5,22 +5,25 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
 import routes from './routes';
+import { config } from './config/env';
+import rbacRoutes from './routes/rbac.routes';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-
+const PORT = config.PORT;
+app.use(express.json());
+app.use('/v1/rbac', rbacRoutes);
 // Security middleware
 app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: config.FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 // Body parsing middleware
@@ -36,7 +39,33 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: config.NODE_ENV,
+    version: '1.0.0',
+  });
+});
+
+// API info endpoint at root level
+app.get('/v1', (req, res) => {
+  res.json({
+    success: true,
+    message: 'AIMS API Server',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/v1/auth',
+      superAdmin: '/v1/super-admin',
+      hr: '/v1/hr',
+      marketing: '/v1/marketing',
+      pos: '/v1/pos',
+      inventory: '/v1/inventory',
+      client: '/v1/client',
+      accounts: '/v1/accounts',
+      products: '/v1/products',
+      sales: '/v1/sales',
+      purchases: '/v1/purchases',
+      notifications: '/v1/notifications',
+    },
+    documentation: '/api/docs',
+    health: '/health',
   });
 });
 
@@ -48,7 +77,7 @@ app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
-    path: req.originalUrl
+    path: req.originalUrl,
   });
 });
 
@@ -59,8 +88,8 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 AIMS Backend Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌍 Environment: ${config.NODE_ENV}`);
+  console.log(`🔗 Frontend URL: ${config.FRONTEND_URL}`);
 });
 
 export default app;
-

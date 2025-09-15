@@ -10,7 +10,7 @@ import type {
   PurchaseOrderItem,
   StockAlert,
   InventoryCount,
-  InventoryCountItem
+  InventoryCountItem,
 } from '@shared/types/database';
 
 export class InventoryClerkService {
@@ -22,13 +22,13 @@ export class InventoryClerkService {
         categoriesResult,
         suppliersResult,
         lowStockResult,
-        transactionsResult
+        transactionsResult,
       ] = await Promise.all([
         supabaseAdmin.from('products').select('id', { count: 'exact' }),
         supabaseAdmin.from('categories').select('id', { count: 'exact' }),
         supabaseAdmin.from('suppliers').select('id', { count: 'exact' }),
         supabaseAdmin.from('products').select('id', { count: 'exact' }).lte('stock_quantity', 'minimum_stock'),
-        supabaseAdmin.from('inventory_transactions').select('id', { count: 'exact' })
+        supabaseAdmin.from('inventory_transactions').select('id', { count: 'exact' }),
       ]);
 
       return {
@@ -37,7 +37,7 @@ export class InventoryClerkService {
         totalSuppliers: suppliersResult.count || 0,
         lowStockItems: lowStockResult.count || 0,
         totalTransactions: transactionsResult.count || 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch inventory dashboard: ${error}`);
@@ -93,8 +93,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch products: ${error}`);
@@ -200,8 +200,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch categories: ${error}`);
@@ -299,8 +299,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch suppliers: ${error}`);
@@ -410,8 +410,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch inventory transactions: ${error}`);
@@ -476,8 +476,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch stock adjustments: ${error}`);
@@ -542,8 +542,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch stock movements: ${error}`);
@@ -592,8 +592,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch purchase orders: ${error}`);
@@ -727,8 +727,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch stock alerts: ${error}`);
@@ -741,7 +741,7 @@ export class InventoryClerkService {
         .from('stock_alerts')
         .update({
           is_resolved: true,
-          resolved_at: new Date().toISOString()
+          resolved_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -788,8 +788,8 @@ export class InventoryClerkService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch inventory counts: ${error}`);
@@ -888,7 +888,7 @@ export class InventoryClerkService {
       return {
         products: data || [],
         totalValue,
-        filters
+        filters,
       };
     } catch (error) {
       throw new Error(`Failed to fetch inventory report: ${error}`);
@@ -926,7 +926,7 @@ export class InventoryClerkService {
 
       return {
         movements: data || [],
-        filters
+        filters,
       };
     } catch (error) {
       throw new Error(`Failed to fetch stock movement report: ${error}`);

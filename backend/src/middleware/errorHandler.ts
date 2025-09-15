@@ -9,7 +9,7 @@ export const errorHandler = (
   error: AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   let statusCode = error.statusCode || 500;
   let message = error.message || 'Internal Server Error';
@@ -22,7 +22,7 @@ export const errorHandler = (
     method: req.method,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 
   // Handle specific error types
@@ -53,8 +53,8 @@ export const errorHandler = (
     message,
     ...(process.env.NODE_ENV === 'development' && {
       stack: error.stack,
-      details: error
-    })
+      details: error,
+    }),
   });
 };
 

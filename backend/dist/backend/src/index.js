@@ -31,7 +31,7 @@ app.get('/health', (req, res) => {
         environment: process.env.NODE_ENV || 'development'
     });
 });
-app.use('/api', routes_1.default);
+app.use('/', routes_1.default);
 app.use('*', (req, res) => {
     res.status(404).json({
         success: false,

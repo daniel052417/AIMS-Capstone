@@ -7,7 +7,7 @@ import type {
   Customer,
   Product,
   Payment,
-  OrderWithDetails
+  OrderWithDetails,
 } from '@shared/types/database';
 
 export class SalesService {
@@ -76,8 +76,8 @@ export class SalesService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch sales orders: ${error}`);
@@ -206,7 +206,7 @@ export class SalesService {
         notes: orderData.notes,
         payment_method: orderData.payment_method,
         payment_status: orderData.payment_status || 'pending',
-        created_by_user_id: orderData.created_by_user_id
+        created_by_user_id: orderData.created_by_user_id,
       };
 
       // Prepare items data
@@ -215,14 +215,14 @@ export class SalesService {
         quantity: item.quantity,
         unit_price: item.unit_price,
         discount_percentage: item.discount_percentage || 0,
-        total_price: item.quantity * item.unit_price
+        total_price: item.quantity * item.unit_price,
       }));
 
       // Prepare status data
       const statusData = {
         status: 'pending',
         notes: 'Order created',
-        changed_by_user_id: orderData.created_by_user_id
+        changed_by_user_id: orderData.created_by_user_id,
       };
 
       // Use RPC transaction function
@@ -230,7 +230,7 @@ export class SalesService {
         .rpc('create_sales_order_transaction', {
           p_order_data: orderPayload,
           p_items_data: itemsData,
-          p_status_data: statusData
+          p_status_data: statusData,
         });
 
       if (error) {
@@ -251,7 +251,7 @@ export class SalesService {
         .from('sales_orders')
         .update({
           ...orderData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -271,7 +271,7 @@ export class SalesService {
         .from('sales_orders')
         .update({
           status,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -287,7 +287,7 @@ export class SalesService {
           status,
           notes: notes || `Status changed to ${status}`,
           changed_by_user_id: changedByUserId,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         }]);
 
       if (statusError) throw statusError;
@@ -344,7 +344,7 @@ export class SalesService {
 
       return {
         transactions: data || [],
-        total: count || 0
+        total: count || 0,
       };
     } catch (error) {
       throw new Error(`Failed to fetch sales transactions: ${error}`);
@@ -406,7 +406,7 @@ export class SalesService {
 
       return {
         payments: data || [],
-        total: count || 0
+        total: count || 0,
       };
     } catch (error) {
       throw new Error(`Failed to fetch payments: ${error}`);
@@ -469,8 +469,8 @@ export class SalesService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch customers: ${error}`);
@@ -538,7 +538,7 @@ export class SalesService {
         is_active: customerData.is_active !== undefined ? customerData.is_active : true,
         total_spent: customerData.total_spent || 0,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       const { data, error } = await supabaseAdmin
@@ -581,7 +581,7 @@ export class SalesService {
         .rpc('get_sales_report', {
           p_date_from: filters.date_from,
           p_date_to: filters.date_to,
-          p_customer_id: filters.customer_id
+          p_customer_id: filters.customer_id,
         });
 
       if (error) throw error;
@@ -597,7 +597,7 @@ export class SalesService {
         .rpc('get_top_selling_products', {
           p_date_from: filters.date_from,
           p_date_to: filters.date_to,
-          p_limit: filters.limit || 10
+          p_limit: filters.limit || 10,
         });
 
       if (error) throw error;
@@ -613,7 +613,7 @@ export class SalesService {
         .rpc('get_customer_sales_report', {
           p_date_from: filters.date_from,
           p_date_to: filters.date_to,
-          p_customer_id: filters.customer_id
+          p_customer_id: filters.customer_id,
         });
 
       if (error) throw error;
@@ -630,12 +630,12 @@ export class SalesService {
         totalOrders,
         totalRevenue,
         pendingOrders,
-        topProducts
+        topProducts,
       ] = await Promise.all([
         supabaseAdmin.from('sales_orders').select('id', { count: 'exact' }),
         supabaseAdmin.from('sales_transactions').select('total_amount'),
         supabaseAdmin.from('sales_orders').select('id', { count: 'exact' }).eq('status', 'pending'),
-        supabaseAdmin.rpc('get_top_selling_products', { p_limit: 5 })
+        supabaseAdmin.rpc('get_top_selling_products', { p_limit: 5 }),
       ]);
 
       const totalRevenueAmount = totalRevenue.data?.reduce((sum, t) => sum + t.total_amount, 0) || 0;
@@ -645,7 +645,7 @@ export class SalesService {
         totalRevenue: totalRevenueAmount,
         pendingOrders: pendingOrders.count || 0,
         topProducts: topProducts.data || [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch sales dashboard: ${error}`);

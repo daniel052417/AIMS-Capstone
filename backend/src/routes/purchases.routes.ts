@@ -11,76 +11,76 @@ router.use(authenticateToken);
 // Purchase Orders Routes
 router.get('/orders', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.getPurchaseOrders)
+  asyncHandler(purchasesController.getPurchaseOrders),
 );
 
 router.get('/orders/:id', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.getPurchaseOrderById)
+  asyncHandler(purchasesController.getPurchaseOrderById),
 );
 
 router.post('/orders', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.createPurchaseOrder)
+  asyncHandler(purchasesController.createPurchaseOrder),
 );
 
 router.put('/orders/:id', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.updatePurchaseOrder)
+  asyncHandler(purchasesController.updatePurchaseOrder),
 );
 
 router.put('/orders/:id/approve', 
   requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(purchasesController.approvePurchaseOrder)
+  asyncHandler(purchasesController.approvePurchaseOrder),
 );
 
 // Purchase Order Items Routes
 router.put('/items/:id', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.updatePurchaseOrderItem)
+  asyncHandler(purchasesController.updatePurchaseOrderItem),
 );
 
 router.put('/items/:id/receive', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.receivePurchaseOrderItem)
+  asyncHandler(purchasesController.receivePurchaseOrderItem),
 );
 
 // Supplier Management Routes
 router.get('/suppliers', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.getSuppliers)
+  asyncHandler(purchasesController.getSuppliers),
 );
 
 router.get('/suppliers/:id', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.getSupplierById)
+  asyncHandler(purchasesController.getSupplierById),
 );
 
 router.post('/suppliers', 
   requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(purchasesController.createSupplier)
+  asyncHandler(purchasesController.createSupplier),
 );
 
 router.put('/suppliers/:id', 
   requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(purchasesController.updateSupplier)
+  asyncHandler(purchasesController.updateSupplier),
 );
 
 // Reports Routes
 router.get('/reports/purchases', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.getPurchaseReport)
+  asyncHandler(purchasesController.getPurchaseReport),
 );
 
 router.get('/reports/supplier-performance', 
   requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(purchasesController.getSupplierPerformance)
+  asyncHandler(purchasesController.getSupplierPerformance),
 );
 
 // Dashboard Routes
 router.get('/dashboard', 
   requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(purchasesController.getPurchasesDashboard)
+  asyncHandler(purchasesController.getPurchasesDashboard),
 );
 
 export default router;

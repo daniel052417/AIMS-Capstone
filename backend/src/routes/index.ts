@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
+import rbacRoutes from './rbac.routes';
 import superAdminRoutes from './superAdmin.routes';
 import hrRoutes from './hr.routes';
 import marketingRoutes from './marketing.routes';
@@ -19,6 +20,7 @@ const API_VERSION = '/v1';
 
 // Route definitions
 router.use(`${API_VERSION}/auth`, authRoutes);
+router.use(`${API_VERSION}/rbac`, rbacRoutes);
 router.use(`${API_VERSION}/super-admin`, superAdminRoutes);
 router.use(`${API_VERSION}/hr`, hrRoutes);
 router.use(`${API_VERSION}/marketing`, marketingRoutes);
@@ -31,8 +33,8 @@ router.use(`${API_VERSION}/sales`, salesRoutes);
 router.use(`${API_VERSION}/purchases`, purchasesRoutes);
 router.use(`${API_VERSION}/notifications`, notificationsRoutes);
 
-// API info endpoint
-router.get('/', (req, res) => {
+// API info endpoint - handle both /v1 and /v1/
+router.get(['/', ''], (req, res) => {
   res.json({
     success: true,
     message: 'AIMS API Server',
@@ -49,10 +51,10 @@ router.get('/', (req, res) => {
       products: `${API_VERSION}/products`,
       sales: `${API_VERSION}/sales`,
       purchases: `${API_VERSION}/purchases`,
-      notifications: `${API_VERSION}/notifications`
+      notifications: `${API_VERSION}/notifications`,
     },
     documentation: '/api/docs',
-    health: '/health'
+    health: '/health',
   });
 });
 

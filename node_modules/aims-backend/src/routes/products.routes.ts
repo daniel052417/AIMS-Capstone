@@ -1,118 +1,62 @@
 import { Router } from 'express';
-import { authenticateToken, requireRole, requirePermission } from '../middleware/auth';
-import { asyncHandler } from '../middleware/errorHandler';
-import * as productsController from '../controllers/products.controller';
+import { ProductsController } from '../controllers/products.controller';
+import { authenticateToken, requirePermission } from '../middleware/auth';
+import { requirePermission as requirePerm } from '../middleware/rbac';
 
 const router = Router();
 
-// Apply authentication to all routes
+// Public routes (no authentication required)
+router.get('/categories', ProductsController.getCategories);
+router.get('/search', ProductsController.search);
+
+// Protected routes
 router.use(authenticateToken);
 
-// Product Management Routes
+// Product CRUD operations
+router.post('/', 
+  requirePerm('products', 'create'),
+  ProductsController.create
+);
+
 router.get('/', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk', 'pos_cashier']), 
-  asyncHandler(productsController.getProducts)
+  requirePerm('products', 'read'),
+  ProductsController.getAll
 );
 
 router.get('/:id', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk', 'pos_cashier']), 
-  asyncHandler(productsController.getProductById)
-);
-
-router.post('/', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.createProduct)
+  requirePerm('products', 'read'),
+  ProductsController.getById
 );
 
 router.put('/:id', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.updateProduct)
+  requirePerm('products', 'update'),
+  ProductsController.update
 );
 
 router.delete('/:id', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.deleteProduct)
+  requirePerm('products', 'delete'),
+  ProductsController.delete
 );
 
-// Category Management Routes
-router.get('/categories', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk', 'pos_cashier']), 
-  asyncHandler(productsController.getCategories)
+router.patch('/:id/soft-delete', 
+  requirePerm('products', 'delete'),
+  ProductsController.softDelete
 );
 
-router.post('/categories', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.createCategory)
+router.patch('/:id/restore', 
+  requirePerm('products', 'update'),
+  ProductsController.restore
 );
 
-router.put('/categories/:id', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.updateCategory)
+// Product variants
+router.get('/:productId/variants', 
+  requirePerm('products', 'read'),
+  ProductsController.getVariants
 );
 
-router.delete('/categories/:id', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.deleteCategory)
-);
-
-// Supplier Management Routes
-router.get('/suppliers', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.getSuppliers)
-);
-
-router.post('/suppliers', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.createSupplier)
-);
-
-router.put('/suppliers/:id', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.updateSupplier)
-);
-
-router.delete('/suppliers/:id', 
-  requireRole(['super_admin', 'inventory_admin']), 
-  asyncHandler(productsController.deleteSupplier)
-);
-
-// Inventory Management Routes
-router.get('/inventory/levels', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.getInventoryLevels)
-);
-
-router.put('/inventory/levels/:id', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.updateInventoryLevel)
-);
-
-router.get('/inventory/movements', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.getInventoryMovements)
-);
-
-router.post('/inventory/movements', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.createInventoryMovement)
-);
-
-// Stock Management Routes
-router.post('/:productId/adjust-stock', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.adjustStock)
-);
-
-// Reports Routes
-router.get('/reports/low-stock', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.getLowStockProducts)
-);
-
-router.get('/reports/product-sales', 
-  requireRole(['super_admin', 'inventory_admin', 'inventory_clerk']), 
-  asyncHandler(productsController.getProductSalesReport)
+router.post('/:productId/variants', 
+  requirePerm('products', 'create'),
+  ProductsController.createVariant
 );
 
 export default router;
-

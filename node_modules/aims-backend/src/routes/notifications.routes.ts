@@ -11,96 +11,96 @@ router.use(authenticateToken);
 // User Notifications Routes
 router.get('/user', 
   requireRole(['super_admin', 'hr_admin', 'hr_staff', 'marketing_admin', 'marketing_staff', 'inventory_admin', 'inventory_clerk', 'pos_cashier', 'sales_admin', 'sales_staff']), 
-  asyncHandler(notificationsController.getNotifications)
+  asyncHandler(notificationsController.getNotifications),
 );
 
 router.post('/user', 
   requireRole(['super_admin']), 
-  asyncHandler(notificationsController.createNotification)
+  asyncHandler(notificationsController.createNotification),
 );
 
 router.put('/user/:id/read', 
   requireRole(['super_admin', 'hr_admin', 'hr_staff', 'marketing_admin', 'marketing_staff', 'inventory_admin', 'inventory_clerk', 'pos_cashier', 'sales_admin', 'sales_staff']), 
-  asyncHandler(notificationsController.markAsRead)
+  asyncHandler(notificationsController.markAsRead),
 );
 
 router.put('/user/mark-all-read', 
   requireRole(['super_admin', 'hr_admin', 'hr_staff', 'marketing_admin', 'marketing_staff', 'inventory_admin', 'inventory_clerk', 'pos_cashier', 'sales_admin', 'sales_staff']), 
-  asyncHandler(notificationsController.markAllAsRead)
+  asyncHandler(notificationsController.markAllAsRead),
 );
 
 router.delete('/user/:id', 
   requireRole(['super_admin', 'hr_admin', 'hr_staff', 'marketing_admin', 'marketing_staff', 'inventory_admin', 'inventory_clerk', 'pos_cashier', 'sales_admin', 'sales_staff']), 
-  asyncHandler(notificationsController.deleteNotification)
+  asyncHandler(notificationsController.deleteNotification),
 );
 
 // Notification Templates Routes
 router.get('/templates', 
   requireRole(['super_admin', 'marketing_admin']), 
-  asyncHandler(notificationsController.getNotificationTemplates)
+  asyncHandler(notificationsController.getNotificationTemplates),
 );
 
 router.get('/templates/:id', 
   requireRole(['super_admin', 'marketing_admin']), 
-  asyncHandler(notificationsController.getNotificationTemplateById)
+  asyncHandler(notificationsController.getNotificationTemplateById),
 );
 
 router.post('/templates', 
   requireRole(['super_admin', 'marketing_admin']), 
-  asyncHandler(notificationsController.createNotificationTemplate)
+  asyncHandler(notificationsController.createNotificationTemplate),
 );
 
 router.put('/templates/:id', 
   requireRole(['super_admin', 'marketing_admin']), 
-  asyncHandler(notificationsController.updateNotificationTemplate)
+  asyncHandler(notificationsController.updateNotificationTemplate),
 );
 
 router.delete('/templates/:id', 
   requireRole(['super_admin', 'marketing_admin']), 
-  asyncHandler(notificationsController.deleteNotificationTemplate)
+  asyncHandler(notificationsController.deleteNotificationTemplate),
 );
 
 // Client Notifications Routes (Marketing)
 router.get('/client', 
   requireRole(['super_admin', 'marketing_admin', 'marketing_staff']), 
-  asyncHandler(notificationsController.getClientNotifications)
+  asyncHandler(notificationsController.getClientNotifications),
 );
 
 router.post('/client', 
   requireRole(['super_admin', 'marketing_admin', 'marketing_staff']), 
-  asyncHandler(notificationsController.createClientNotification)
+  asyncHandler(notificationsController.createClientNotification),
 );
 
 router.put('/client/:id', 
   requireRole(['super_admin', 'marketing_admin', 'marketing_staff']), 
-  asyncHandler(notificationsController.updateClientNotification)
+  asyncHandler(notificationsController.updateClientNotification),
 );
 
 router.delete('/client/:id', 
   requireRole(['super_admin', 'marketing_admin', 'marketing_staff']), 
-  asyncHandler(notificationsController.deleteClientNotification)
+  asyncHandler(notificationsController.deleteClientNotification),
 );
 
 router.post('/client/:id/send', 
   requireRole(['super_admin', 'marketing_admin', 'marketing_staff']), 
-  asyncHandler(notificationsController.sendClientNotification)
+  asyncHandler(notificationsController.sendClientNotification),
 );
 
 // Bulk and System Notifications
 router.post('/bulk', 
   requireRole(['super_admin']), 
-  asyncHandler(notificationsController.sendBulkNotification)
+  asyncHandler(notificationsController.sendBulkNotification),
 );
 
 router.post('/system', 
   requireRole(['super_admin']), 
-  asyncHandler(notificationsController.sendSystemNotification)
+  asyncHandler(notificationsController.sendSystemNotification),
 );
 
 // Statistics
 router.get('/stats', 
   requireRole(['super_admin', 'hr_admin', 'hr_staff', 'marketing_admin', 'marketing_staff', 'inventory_admin', 'inventory_clerk', 'pos_cashier', 'sales_admin', 'sales_staff']), 
-  asyncHandler(notificationsController.getNotificationStats)
+  asyncHandler(notificationsController.getNotificationStats),
 );
 
 export default router;

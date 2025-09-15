@@ -34,7 +34,7 @@ export class AccountsService {
 
       return {
         accounts: data || [],
-        total: count || 0
+        total: count || 0,
       };
     } catch (error) {
       throw new Error(`Failed to fetch accounts: ${error}`);
@@ -148,7 +148,7 @@ export class AccountsService {
 
       return {
         transactions: data || [],
-        total: count || 0
+        total: count || 0,
       };
     } catch (error) {
       throw new Error(`Failed to fetch GL transactions: ${error}`);
@@ -201,7 +201,7 @@ export class AccountsService {
       // Insert transaction items
       const itemsWithTransactionId = items.map(item => ({
         ...item,
-        transaction_id: transaction.id
+        transaction_id: transaction.id,
       }));
 
       const { data: transactionItems, error: itemsError } = await supabaseAdmin
@@ -213,7 +213,7 @@ export class AccountsService {
 
       return {
         ...transaction,
-        items: transactionItems
+        items: transactionItems,
       };
     } catch (error) {
       throw new Error(`Failed to create GL transaction: ${error}`);
@@ -227,7 +227,7 @@ export class AccountsService {
         .update({
           status: 'posted',
           posted_by_user_id: postedByUserId,
-          posted_at: new Date().toISOString()
+          posted_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -282,7 +282,7 @@ export class AccountsService {
 
       return {
         expenses: data || [],
-        total: count || 0
+        total: count || 0,
       };
     } catch (error) {
       throw new Error(`Failed to fetch expenses: ${error}`);
@@ -326,7 +326,7 @@ export class AccountsService {
         .from('expenses')
         .update({
           status: 'approved',
-          approved_by_user_id: approvedByUserId
+          approved_by_user_id: approvedByUserId,
         })
         .eq('id', id)
         .select()
@@ -345,7 +345,7 @@ export class AccountsService {
       const { data, error } = await supabaseAdmin
         .rpc('get_trial_balance', {
           p_date_from: filters.date_from,
-          p_date_to: filters.date_to
+          p_date_to: filters.date_to,
         });
 
       if (error) throw error;
@@ -360,7 +360,7 @@ export class AccountsService {
       const { data, error } = await supabaseAdmin
         .rpc('get_profit_and_loss', {
           p_date_from: filters.date_from,
-          p_date_to: filters.date_to
+          p_date_to: filters.date_to,
         });
 
       if (error) throw error;
@@ -374,7 +374,7 @@ export class AccountsService {
     try {
       const { data, error } = await supabaseAdmin
         .rpc('get_balance_sheet', {
-          p_date: filters.date
+          p_date: filters.date,
         });
 
       if (error) throw error;

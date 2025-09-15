@@ -1,88 +1,109 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { config } from '../config/env';
+import { JWTUtils } from '../utils/jwt';
 import { supabaseAdmin } from '../config/supabaseClient';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
+    userId: string;
     email: string;
-    role: string;
-    permissions: string[];
+    roles: string[];
+    branchId?: string;
   };
 }
+
+export const requireRole = (allowedRoles: string[]) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    // Ensure user is authenticated first
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    // Check if user has any of the allowed roles
+    const hasRequiredRole = allowedRoles.some(role => req.user!.roles.includes(role));
+    
+    if (!hasRequiredRole) {
+      return res.status(403).json({ 
+        success: false, 
+        message: `Access denied. Required one of these roles: ${allowedRoles.join(', ')}`, 
+      });
+    }
+
+    next();
+  };
+};
+
+// Helper function to check if user has specific role
+export const hasRole = (req: AuthenticatedRequest, role: string): boolean => {
+  return req.user?.roles.includes(role) || false;
+};
+
+// Helper function to check if user has any of the specified roles
+export const hasAnyRole = (req: AuthenticatedRequest, roles: string[]): boolean => {
+  return req.user?.roles ? roles.some(role => req.user!.roles.includes(role)) : false;
+};
 
 export const authenticateToken = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-    if (!token) {
-      res.status(401).json({
-        success: false,
-        message: 'Access token required'
-      });
-      return;
-    }
-
-    // Verify JWT token
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const token = JWTUtils.extractTokenFromHeader(authHeader);
     
-    // Get user details from Supabase
+    // Verify token
+    const payload = JWTUtils.verifyToken(token);
+    
+    // Get user from database to ensure they're still active
     const { data: user, error } = await supabaseAdmin
       .from('users')
-      .select(`
-        id,
-        email,
-        first_name,
-        last_name,
-        role,
-        is_active,
-        created_at,
-        updated_at
-      `)
-      .eq('id', decoded.userId)
+      .select('id, email, is_active, branch_id')
+      .eq('id', payload.userId)
       .single();
 
-    if (error || !user) {
+    if (error || !user || !user.is_active) {
       res.status(401).json({
         success: false,
-        message: 'Invalid token or user not found'
+        message: 'User not found or inactive',
       });
       return;
     }
 
-    if (!user.is_active) {
-      res.status(401).json({
+    // Fetch user roles from user_roles and roles tables
+    const { data: userRoles, error: rolesError } = await supabaseAdmin
+      .from('user_roles')
+      .select(`
+        roles (
+          name
+        )
+      `)
+      .eq('user_id', user.id);
+
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+      res.status(500).json({
         success: false,
-        message: 'User account is inactive'
+        message: 'Failed to fetch user roles',
       });
       return;
     }
 
-    // Get user permissions based on role
-    const { data: permissions } = await supabaseAdmin
-      .from('role_permissions')
-      .select('permission')
-      .eq('role', user.role);
+    // Extract role names from the joined data
+    const roles = userRoles?.map(ur => ur.roles?.name).filter(Boolean) || [];
 
+    // Attach user info with roles to request
     req.user = {
-      id: user.id,
+      userId: user.id,
       email: user.email,
-      role: user.role,
-      permissions: permissions?.map(p => p.permission) || []
+      roles,
+      branchId: user.branch_id,
     };
 
     next();
-  } catch (error) {
-    console.error('Authentication error:', error);
+  } catch (error: any) {
     res.status(401).json({
       success: false,
-      message: 'Invalid token'
+      message: error.message || 'Invalid token',
     });
   }
 };
@@ -90,65 +111,48 @@ export const authenticateToken = async (
 export const optionalAuth = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
+    if (!authHeader) {
       next();
       return;
     }
 
-    // If token exists, try to authenticate
-    await authenticateToken(req, res, next);
+    const token = JWTUtils.extractTokenFromHeader(authHeader);
+    const payload = JWTUtils.verifyToken(token);
+    
+    const { data: user } = await supabaseAdmin
+      .from('users')
+      .select('id, email, is_active, branch_id')
+      .eq('id', payload.userId)
+      .single();
+
+    if (user && user.is_active) {
+      // Fetch user roles
+      const { data: userRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select(`
+          roles (
+            name
+          )
+        `)
+        .eq('user_id', user.id);
+
+      const roles = userRoles?.map(ur => ur.roles?.name).filter(Boolean) || [];
+
+      req.user = {
+        userId: user.id,
+        email: user.email,
+        roles,
+        branchId: user.branch_id,
+      };
+    }
+
+    next();
   } catch (error) {
-    // If authentication fails, continue without user context
+    // If token is invalid, continue without user info
     next();
   }
-};
-
-export const requireRole = (allowedRoles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
-      return;
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      res.status(403).json({
-        success: false,
-        message: 'Insufficient permissions'
-      });
-      return;
-    }
-
-    next();
-  };
-};
-
-export const requirePermission = (requiredPermission: string) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      });
-      return;
-    }
-
-    if (!req.user.permissions.includes(requiredPermission)) {
-      res.status(403).json({
-        success: false,
-        message: 'Insufficient permissions'
-      });
-      return;
-    }
-
-    next();
-  };
 };

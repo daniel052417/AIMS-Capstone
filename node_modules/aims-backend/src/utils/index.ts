@@ -55,7 +55,7 @@ export const parsePagination = (page: string, limit: string) => {
   // TODO: Implement pagination parsing
   return {
     page: parseInt(page) || 1,
-    limit: parseInt(limit) || 10
+    limit: parseInt(limit) || 10,
   };
 };
 
@@ -69,7 +69,7 @@ export const formatResponse = (success: boolean, data: any, message?: string) =>
   return {
     success,
     data,
-    message
+    message,
   };
 };
 
@@ -78,7 +78,7 @@ export const handleError = (error: any) => {
   console.error('Error:', error);
   return {
     success: false,
-    message: 'An error occurred'
+    message: 'An error occurred',
   };
 };
 

@@ -8,13 +8,13 @@ export const getDashboardData = async (req: AuthenticatedRequest, res: Response)
     const dashboardData = await SuperAdminService.getDashboardData();
     res.json({
       success: true,
-      data: dashboardData
+      data: dashboardData,
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch dashboard data'
+      message: 'Failed to fetch dashboard data',
     });
   }
 };
@@ -25,14 +25,14 @@ export const getAnalytics = async (req: AuthenticatedRequest, res: Response): Pr
     res.json({
       success: true,
       data: {
-        message: 'Analytics endpoint - implementation pending'
-      }
+        message: 'Analytics endpoint - implementation pending',
+      },
     });
   } catch (error) {
     console.error('Error fetching analytics:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch analytics data'
+      message: 'Failed to fetch analytics data',
     });
   }
 };
@@ -44,19 +44,19 @@ export const getUsers = async (req: AuthenticatedRequest, res: Response): Promis
       limit: req.query.limit ? Number(req.query.limit) : 10,
       search: req.query.search as string,
       role: req.query.role as string,
-      is_active: req.query.is_active ? req.query.is_active === 'true' : undefined
+      is_active: req.query.is_active ? req.query.is_active === 'true' : undefined,
     };
 
     const result = await SuperAdminService.getUsers(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch users'
+      message: 'Failed to fetch users',
     });
   }
 };
@@ -67,13 +67,13 @@ export const getUserById = async (req: AuthenticatedRequest, res: Response): Pro
     const user = await SuperAdminService.getUserById(id);
     res.json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch user'
+      message: 'Failed to fetch user',
     });
   }
 };
@@ -84,13 +84,13 @@ export const createUser = async (req: AuthenticatedRequest, res: Response): Prom
     const user = await SuperAdminService.createUser(userData);
     res.status(201).json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create user'
+      message: 'Failed to create user',
     });
   }
 };
@@ -102,13 +102,13 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response): Prom
     const user = await SuperAdminService.updateUser(id, userData);
     res.json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update user'
+      message: 'Failed to update user',
     });
   }
 };
@@ -119,13 +119,13 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response): Prom
     await SuperAdminService.deleteUser(id);
     res.json({
       success: true,
-      message: 'User deleted successfully'
+      message: 'User deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete user'
+      message: 'Failed to delete user',
     });
   }
 };
@@ -136,13 +136,13 @@ export const getRoles = async (req: AuthenticatedRequest, res: Response): Promis
     const roles = await SuperAdminService.getRoles();
     res.json({
       success: true,
-      data: roles
+      data: roles,
     });
   } catch (error) {
     console.error('Error fetching roles:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch roles'
+      message: 'Failed to fetch roles',
     });
   }
 };
@@ -153,13 +153,13 @@ export const createRole = async (req: AuthenticatedRequest, res: Response): Prom
     const role = await SuperAdminService.createRole(roleData);
     res.status(201).json({
       success: true,
-      data: role
+      data: role,
     });
   } catch (error) {
     console.error('Error creating role:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create role'
+      message: 'Failed to create role',
     });
   }
 };
@@ -171,13 +171,13 @@ export const updateRole = async (req: AuthenticatedRequest, res: Response): Prom
     const role = await SuperAdminService.updateRole(id, roleData);
     res.json({
       success: true,
-      data: role
+      data: role,
     });
   } catch (error) {
     console.error('Error updating role:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update role'
+      message: 'Failed to update role',
     });
   }
 };
@@ -188,13 +188,13 @@ export const deleteRole = async (req: AuthenticatedRequest, res: Response): Prom
     await SuperAdminService.deleteRole(id);
     res.json({
       success: true,
-      message: 'Role deleted successfully'
+      message: 'Role deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting role:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete role'
+      message: 'Failed to delete role',
     });
   }
 };
@@ -205,13 +205,13 @@ export const getPermissions = async (req: AuthenticatedRequest, res: Response): 
     const permissions = await SuperAdminService.getPermissions();
     res.json({
       success: true,
-      data: permissions
+      data: permissions,
     });
   } catch (error) {
     console.error('Error fetching permissions:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch permissions'
+      message: 'Failed to fetch permissions',
     });
   }
 };
@@ -222,13 +222,13 @@ export const createPermission = async (req: AuthenticatedRequest, res: Response)
     const permission = await SuperAdminService.createPermission(permissionData);
     res.status(201).json({
       success: true,
-      data: permission
+      data: permission,
     });
   } catch (error) {
     console.error('Error creating permission:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create permission'
+      message: 'Failed to create permission',
     });
   }
 };
@@ -240,13 +240,13 @@ export const updatePermission = async (req: AuthenticatedRequest, res: Response)
     const permission = await SuperAdminService.updatePermission(id, permissionData);
     res.json({
       success: true,
-      data: permission
+      data: permission,
     });
   } catch (error) {
     console.error('Error updating permission:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update permission'
+      message: 'Failed to update permission',
     });
   }
 };
@@ -257,13 +257,13 @@ export const deletePermission = async (req: AuthenticatedRequest, res: Response)
     await SuperAdminService.deletePermission(id);
     res.json({
       success: true,
-      message: 'Permission deleted successfully'
+      message: 'Permission deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting permission:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete permission'
+      message: 'Failed to delete permission',
     });
   }
 };
@@ -274,13 +274,13 @@ export const getAppSettings = async (req: AuthenticatedRequest, res: Response): 
     const settings = await SuperAdminService.getAppSettings();
     res.json({
       success: true,
-      data: settings
+      data: settings,
     });
   } catch (error) {
     console.error('Error fetching app settings:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch app settings'
+      message: 'Failed to fetch app settings',
     });
   }
 };
@@ -291,13 +291,13 @@ export const updateAppSettings = async (req: AuthenticatedRequest, res: Response
     const settings = await SuperAdminService.updateAppSettings(settingsData);
     res.json({
       success: true,
-      data: settings
+      data: settings,
     });
   } catch (error) {
     console.error('Error updating app settings:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update app settings'
+      message: 'Failed to update app settings',
     });
   }
 };
@@ -307,13 +307,13 @@ export const getSystemSettings = async (req: AuthenticatedRequest, res: Response
     const settings = await SuperAdminService.getSystemSettings();
     res.json({
       success: true,
-      data: settings
+      data: settings,
     });
   } catch (error) {
     console.error('Error fetching system settings:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch system settings'
+      message: 'Failed to fetch system settings',
     });
   }
 };
@@ -325,13 +325,13 @@ export const updateSystemSetting = async (req: AuthenticatedRequest, res: Respon
     const setting = await SuperAdminService.updateSystemSetting(key, value, req.user!.id);
     res.json({
       success: true,
-      data: setting
+      data: setting,
     });
   } catch (error) {
     console.error('Error updating system setting:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update system setting'
+      message: 'Failed to update system setting',
     });
   }
 };
@@ -344,19 +344,19 @@ export const getStaffWithAccounts = async (req: AuthenticatedRequest, res: Respo
       limit: req.query.limit ? Number(req.query.limit) : 10,
       search: req.query.search as string,
       department: req.query.department as string,
-      is_active: req.query.is_active ? req.query.is_active === 'true' : undefined
+      is_active: req.query.is_active ? req.query.is_active === 'true' : undefined,
     };
 
     const result = await SuperAdminService.getStaffWithAccounts(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching staff with accounts:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch staff with accounts'
+      message: 'Failed to fetch staff with accounts',
     });
   }
 };
@@ -369,19 +369,19 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
       limit: req.query.limit ? Number(req.query.limit) : 10,
       action: req.query.action as string,
       user_id: req.query.user_id as string,
-      resource: req.query.resource as string
+      resource: req.query.resource as string,
     };
 
     const result = await SuperAdminService.getAuditLogs(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching audit logs:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch audit logs'
+      message: 'Failed to fetch audit logs',
     });
   }
 };
@@ -392,13 +392,13 @@ export const getAuditLogById = async (req: AuthenticatedRequest, res: Response):
     const log = await SuperAdminService.getAuditLogById(id);
     res.json({
       success: true,
-      data: log
+      data: log,
     });
   } catch (error) {
     console.error('Error fetching audit log:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch audit log'
+      message: 'Failed to fetch audit log',
     });
   }
 };
@@ -410,13 +410,13 @@ export const getUserAccessibleComponents = async (req: AuthenticatedRequest, res
     const components = await SuperAdminService.getUserAccessibleComponents(userId);
     res.json({
       success: true,
-      data: components
+      data: components,
     });
   } catch (error) {
     console.error('Error fetching user accessible components:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch user accessible components'
+      message: 'Failed to fetch user accessible components',
     });
   }
 };
@@ -427,13 +427,13 @@ export const getUserPermissions = async (req: AuthenticatedRequest, res: Respons
     const permissions = await SuperAdminService.getUserPermissions(userId);
     res.json({
       success: true,
-      data: permissions
+      data: permissions,
     });
   } catch (error) {
     console.error('Error fetching user permissions:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch user permissions'
+      message: 'Failed to fetch user permissions',
     });
   }
 };
@@ -445,13 +445,13 @@ export const checkUserPermission = async (req: AuthenticatedRequest, res: Respon
     const hasPermission = await SuperAdminService.userHasPermission(userId, permissionName as string);
     res.json({
       success: true,
-      data: { hasPermission }
+      data: { hasPermission },
     });
   } catch (error) {
     console.error('Error checking user permission:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to check user permission'
+      message: 'Failed to check user permission',
     });
   }
 };
@@ -462,13 +462,13 @@ export const getSystemHealth = async (req: AuthenticatedRequest, res: Response):
     const health = await SuperAdminService.getSystemHealth();
     res.json({
       success: true,
-      data: health
+      data: health,
     });
   } catch (error) {
     console.error('Error fetching system health:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch system health'
+      message: 'Failed to fetch system health',
     });
   }
 };
@@ -478,13 +478,13 @@ export const getSystemStats = async (req: AuthenticatedRequest, res: Response): 
     const stats = await SuperAdminService.getSystemStats();
     res.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
     console.error('Error fetching system stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch system stats'
+      message: 'Failed to fetch system stats',
     });
   }
 };

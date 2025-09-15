@@ -1,42 +1,74 @@
 import { createClient } from '@supabase/supabase-js';
 import { config } from './env';
 
-// Create Supabase client for server-side operations
+// Client for user operations (uses anon key)
+export const supabase = createClient(
+  config.SUPABASE_URL,
+  config.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  },
+);
+
+// Admin client for server operations (uses service role key)
 export const supabaseAdmin = createClient(
-  config.supabase.url,
-  config.supabase.serviceRoleKey,
+  config.SUPABASE_URL,
+  config.SUPABASE_SERVICE_ROLE_KEY,
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
-  }
+      persistSession: false,
+    },
+  },
 );
 
-// Create Supabase client for client-side operations
-export const supabaseClient = createClient(
-  config.supabase.url,
-  config.supabase.anonKey
-);
-
-// Helper function to get Supabase client with user context
-export const getSupabaseClient = (accessToken?: string) => {
-  if (!accessToken) {
-    return supabaseClient;
-  }
-
-  return createClient(
-    config.supabase.url,
-    config.supabase.anonKey,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      }
-    }
-  );
+// Database types (you'll update these after running schema)
+export type Database = {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          branch_id?: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          last_login?: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          first_name: string;
+          last_name: string;
+          phone?: string;
+          branch_id?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          last_login?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          first_name?: string;
+          last_name?: string;
+          phone?: string;
+          branch_id?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          last_login?: string;
+        };
+      };
+      // Add other table types as needed
+    };
+  };
 };
-
-export default supabaseAdmin;
-

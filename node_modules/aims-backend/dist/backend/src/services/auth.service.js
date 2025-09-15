@@ -12,6 +12,7 @@ class AuthService {
     static async login(credentials) {
         try {
             const { email, password } = credentials;
+            console.log('🔍 Login attempt for email:', email);
             const { data: user, error } = await supabaseClient_1.supabaseAdmin
                 .from('users')
                 .select(`
@@ -21,37 +22,62 @@ class AuthService {
           first_name,
           last_name,
           role,
-          department,
           is_active,
           created_at,
           updated_at
         `)
                 .eq('email', email.toLowerCase())
                 .single();
-            if (error || !user) {
+            console.log('📊 Supabase query result:', {
+                hasUser: !!user,
+                hasError: !!error,
+                errorMessage: error?.message,
+                userEmail: user?.email,
+                hasPasswordHash: !!user?.password_hash,
+                isActive: user?.is_active
+            });
+            if (error) {
+                console.error('❌ Supabase query error:', error);
                 return {
                     success: false,
-                    message: 'Invalid email or password'
+                    message: `Database error: ${error.message}`
+                };
+            }
+            if (!user) {
+                console.log('❌ User not found for email:', email);
+                return {
+                    success: false,
+                    message: 'User not found'
                 };
             }
             if (!user.is_active) {
+                console.log('❌ User account is inactive:', user.email);
                 return {
                     success: false,
                     message: 'Account is deactivated. Please contact administrator.'
                 };
             }
-            const isPasswordValid = await bcryptjs_1.default.compare(password, user.password_hash);
-            if (!isPasswordValid) {
+            if (!user.password_hash) {
+                console.log('❌ User has no password hash:', user.email);
                 return {
                     success: false,
-                    message: 'Invalid email or password'
+                    message: 'User account not properly set up. Please contact administrator.'
+                };
+            }
+            console.log('🔐 Verifying password for user:', user.email);
+            const isPasswordValid = await bcryptjs_1.default.compare(password, user.password_hash);
+            console.log('🔐 Password verification result:', isPasswordValid);
+            if (!isPasswordValid) {
+                console.log('❌ Invalid password for user:', user.email);
+                return {
+                    success: false,
+                    message: 'Invalid password'
                 };
             }
             const tokenPayload = {
                 userId: user.id,
                 email: user.email,
-                role: user.role,
-                department: user.department
+                role: user.role
             };
             const token = jsonwebtoken_1.default.sign(tokenPayload, env_1.config.jwt.secret, {
                 expiresIn: env_1.config.jwt.expiresIn
@@ -61,6 +87,7 @@ class AuthService {
                 .from('users')
                 .update({ last_login: new Date().toISOString() })
                 .eq('id', user.id);
+            console.log('✅ Login successful for user:', user.email);
             return {
                 success: true,
                 message: 'Login successful',
@@ -71,7 +98,6 @@ class AuthService {
                         first_name: user.first_name,
                         last_name: user.last_name,
                         role: user.role,
-                        department: user.department,
                         is_active: user.is_active
                     },
                     token,
@@ -210,7 +236,8 @@ class AuthService {
                         role: user.role,
                         department: user.department,
                         is_active: user.is_active
-                    }
+                    },
+                    token: ''
                 }
             };
         }

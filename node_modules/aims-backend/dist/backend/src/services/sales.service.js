@@ -127,54 +127,90 @@ class SalesService {
     }
     static async createSalesOrder(orderData, items) {
         try {
+            if (!orderData.customer_id) {
+                throw new Error('Customer ID is required');
+            }
+            if (!items || items.length === 0) {
+                throw new Error('At least one item is required');
+            }
+            for (const item of items) {
+                if (!item.product_id) {
+                    throw new Error('Product ID is required for all items');
+                }
+                if (!item.quantity || item.quantity <= 0) {
+                    throw new Error('Valid quantity is required for all items');
+                }
+                if (!item.unit_price || item.unit_price <= 0) {
+                    throw new Error('Valid unit price is required for all items');
+                }
+            }
+            if (!orderData.order_number) {
+                try {
+                    const { data: generatedNumber, error: numberError } = await supabaseClient_1.supabaseAdmin
+                        .rpc('generate_order_number');
+                    if (numberError) {
+                        console.error('RPC generate_order_number error:', numberError);
+                        orderData.order_number = `ORD-${Date.now().toString().slice(-4)}`;
+                    }
+                    else {
+                        orderData.order_number = generatedNumber;
+                    }
+                }
+                catch (rpcError) {
+                    console.error('RPC generate_order_number failed:', rpcError);
+                    orderData.order_number = `ORD-${Date.now().toString().slice(-4)}`;
+                }
+            }
             const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
             const taxAmount = subtotal * 0.12;
             const totalAmount = subtotal + taxAmount;
             const orderPayload = {
-                ...orderData,
+                order_number: orderData.order_number,
+                customer_id: orderData.customer_id,
+                staff_id: orderData.staff_id,
+                branch_id: orderData.branch_id,
+                order_date: orderData.order_date || new Date().toISOString(),
+                required_date: orderData.required_date,
+                shipped_date: orderData.shipped_date,
+                status: orderData.status || 'pending',
                 subtotal,
+                discount_amount: orderData.discount_amount || 0,
                 tax_amount: taxAmount,
+                shipping_amount: orderData.shipping_amount || 0,
                 total_amount: totalAmount,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                shipping_address: orderData.shipping_address,
+                notes: orderData.notes,
+                payment_method: orderData.payment_method,
+                payment_status: orderData.payment_status || 'pending',
+                created_by_user_id: orderData.created_by_user_id
             };
-            const { data: order, error: orderError } = await supabaseClient_1.supabaseAdmin
-                .from('sales_orders')
-                .insert([orderPayload])
-                .select()
-                .single();
-            if (orderError)
-                throw orderError;
-            const itemsWithOrderId = items.map(item => ({
-                ...item,
-                order_id: order.id,
-                total_price: item.quantity * item.unit_price,
-                created_at: new Date().toISOString()
+            const itemsData = items.map(item => ({
+                product_id: item.product_id,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                discount_percentage: item.discount_percentage || 0,
+                total_price: item.quantity * item.unit_price
             }));
-            const { data: orderItems, error: itemsError } = await supabaseClient_1.supabaseAdmin
-                .from('order_items')
-                .insert(itemsWithOrderId)
-                .select();
-            if (itemsError)
-                throw itemsError;
-            const { error: statusError } = await supabaseClient_1.supabaseAdmin
-                .from('order_status_history')
-                .insert([{
-                    order_id: order.id,
-                    status: 'pending',
-                    notes: 'Order created',
-                    changed_by_user_id: orderData.created_by_user_id,
-                    created_at: new Date().toISOString()
-                }]);
-            if (statusError)
-                throw statusError;
-            return {
-                ...order,
-                order_items: orderItems
+            const statusData = {
+                status: 'pending',
+                notes: 'Order created',
+                changed_by_user_id: orderData.created_by_user_id
             };
+            const { data, error } = await supabaseClient_1.supabaseAdmin
+                .rpc('create_sales_order_transaction', {
+                p_order_data: orderPayload,
+                p_items_data: itemsData,
+                p_status_data: statusData
+            });
+            if (error) {
+                console.error('Supabase error in createSalesOrder:', JSON.stringify(error, null, 2));
+                throw new Error(`Failed to create sales order: ${error.message || JSON.stringify(error)}`);
+            }
+            return data;
         }
         catch (error) {
-            throw new Error(`Failed to create sales order: ${error}`);
+            console.error('Error in createSalesOrder:', error);
+            throw new Error(`Failed to create sales order: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async updateSalesOrder(id, orderData) {
@@ -416,17 +452,52 @@ class SalesService {
     }
     static async createCustomer(customerData) {
         try {
+            if (!customerData.first_name) {
+                throw new Error('First name is required');
+            }
+            if (!customerData.last_name) {
+                throw new Error('Last name is required');
+            }
+            if (!customerData.customer_code) {
+                try {
+                    const { data: generatedCode, error: codeError } = await supabaseClient_1.supabaseAdmin
+                        .rpc('generate_customer_code');
+                    if (codeError) {
+                        console.error('RPC generate_customer_code error:', codeError);
+                        customerData.customer_code = `CUST-${Date.now().toString().slice(-4)}`;
+                    }
+                    else {
+                        customerData.customer_code = generatedCode;
+                    }
+                }
+                catch (rpcError) {
+                    console.error('RPC generate_customer_code failed:', rpcError);
+                    customerData.customer_code = `CUST-${Date.now().toString().slice(-4)}`;
+                }
+            }
+            const preparedData = {
+                ...customerData,
+                customer_type: customerData.customer_type || 'individual',
+                registration_date: customerData.registration_date || new Date().toISOString().split('T')[0],
+                is_active: customerData.is_active !== undefined ? customerData.is_active : true,
+                total_spent: customerData.total_spent || 0,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
             const { data, error } = await supabaseClient_1.supabaseAdmin
                 .from('customers')
-                .insert([customerData])
+                .insert([preparedData])
                 .select()
                 .single();
-            if (error)
-                throw error;
+            if (error) {
+                console.error('Supabase error in createCustomer:', JSON.stringify(error, null, 2));
+                throw new Error(`Failed to create customer: ${error.message || JSON.stringify(error)}`);
+            }
             return data;
         }
         catch (error) {
-            throw new Error(`Failed to create customer: ${error}`);
+            console.error('Error in createCustomer:', error);
+            throw new Error(`Failed to create customer: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
     }
     static async updateCustomer(id, customerData) {

@@ -11,7 +11,7 @@ import type {
   HRDocument,
   Department,
   JobTitle,
-  CalculatePayrollRecordResult
+  CalculatePayrollRecordResult,
 } from '@shared/types/database';
 
 export class HRAdminService {
@@ -22,12 +22,12 @@ export class HRAdminService {
         staffResult,
         attendanceResult,
         leaveRequestsResult,
-        payrollResult
+        payrollResult,
       ] = await Promise.all([
         supabaseAdmin.from('staff').select('id', { count: 'exact' }),
         supabaseAdmin.from('attendance_records').select('id', { count: 'exact' }),
         supabaseAdmin.from('leave_requests').select('id', { count: 'exact' }),
-        supabaseAdmin.from('payroll_records').select('id', { count: 'exact' })
+        supabaseAdmin.from('payroll_records').select('id', { count: 'exact' }),
       ]);
 
       return {
@@ -35,7 +35,7 @@ export class HRAdminService {
         totalAttendance: attendanceResult.count || 0,
         pendingLeaveRequests: leaveRequestsResult.count || 0,
         totalPayrollRecords: payrollResult.count || 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch HR dashboard: ${error}`);
@@ -96,8 +96,8 @@ export class HRAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch employees: ${error}`);
@@ -208,8 +208,8 @@ export class HRAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch attendance records: ${error}`);
@@ -288,8 +288,8 @@ export class HRAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch leave requests: ${error}`);
@@ -303,7 +303,7 @@ export class HRAdminService {
         .update({
           status: 'approved',
           approved_by: approvedBy,
-          approved_at: new Date().toISOString()
+          approved_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -324,7 +324,7 @@ export class HRAdminService {
           status: 'rejected',
           approved_by: rejectedBy,
           approved_at: new Date().toISOString(),
-          rejection_reason: rejectionReason
+          rejection_reason: rejectionReason,
         })
         .eq('id', id)
         .select()
@@ -383,8 +383,8 @@ export class HRAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch payroll records: ${error}`);
@@ -430,7 +430,7 @@ export class HRAdminService {
     regularHours: number = 0,
     overtimeHours: number = 0,
     bonuses: number = 0,
-    allowances: number = 0
+    allowances: number = 0,
   ): Promise<CalculatePayrollRecordResult> {
     try {
       const { data, error } = await supabaseAdmin
@@ -441,7 +441,7 @@ export class HRAdminService {
           p_regular_hours: regularHours,
           p_overtime_hours: overtimeHours,
           p_bonuses: bonuses,
-          p_allowances: allowances
+          p_allowances: allowances,
         });
 
       if (error) throw error;
@@ -629,8 +629,8 @@ export class HRAdminService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch performance reviews: ${error}`);

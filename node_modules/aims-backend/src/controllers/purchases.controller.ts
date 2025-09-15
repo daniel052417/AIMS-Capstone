@@ -12,20 +12,20 @@ export const getPurchaseOrders = async (req: AuthenticatedRequest, res: Response
       date_to: req.query.date_to as string,
       search: req.query.search as string,
       page: parseInt(req.query.page as string) || 1,
-      limit: parseInt(req.query.limit as string) || 25
+      limit: parseInt(req.query.limit as string) || 25,
     };
 
     const result = await PurchasesService.getPurchaseOrders(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching purchase orders:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch purchase orders'
+      message: 'Failed to fetch purchase orders',
     });
   }
 };
@@ -37,13 +37,13 @@ export const getPurchaseOrderById = async (req: AuthenticatedRequest, res: Respo
     
     res.json({
       success: true,
-      data: order
+      data: order,
     });
   } catch (error) {
     console.error('Error fetching purchase order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch purchase order'
+      message: 'Failed to fetch purchase order',
     });
   }
 };
@@ -54,19 +54,19 @@ export const createPurchaseOrder = async (req: AuthenticatedRequest, res: Respon
     
     const order = await PurchasesService.createPurchaseOrder({
       ...orderData,
-      created_by_user_id: req.user?.id
+      created_by_user_id: req.user?.id,
     }, items);
     
     res.status(201).json({
       success: true,
       data: order,
-      message: 'Purchase order created successfully'
+      message: 'Purchase order created successfully',
     });
   } catch (error) {
     console.error('Error creating purchase order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create purchase order'
+      message: 'Failed to create purchase order',
     });
   }
 };
@@ -76,7 +76,7 @@ export const updatePurchaseOrder = async (req: AuthenticatedRequest, res: Respon
     const { id } = req.params;
     const orderData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const order = await PurchasesService.updatePurchaseOrder(id, orderData);
@@ -84,13 +84,13 @@ export const updatePurchaseOrder = async (req: AuthenticatedRequest, res: Respon
     res.json({
       success: true,
       data: order,
-      message: 'Purchase order updated successfully'
+      message: 'Purchase order updated successfully',
     });
   } catch (error) {
     console.error('Error updating purchase order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update purchase order'
+      message: 'Failed to update purchase order',
     });
   }
 };
@@ -103,7 +103,7 @@ export const approvePurchaseOrder = async (req: AuthenticatedRequest, res: Respo
     if (!approvedByUserId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -113,13 +113,13 @@ export const approvePurchaseOrder = async (req: AuthenticatedRequest, res: Respo
     res.json({
       success: true,
       data: order,
-      message: 'Purchase order approved successfully'
+      message: 'Purchase order approved successfully',
     });
   } catch (error) {
     console.error('Error approving purchase order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to approve purchase order'
+      message: 'Failed to approve purchase order',
     });
   }
 };
@@ -130,7 +130,7 @@ export const updatePurchaseOrderItem = async (req: AuthenticatedRequest, res: Re
     const { id } = req.params;
     const itemData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const item = await PurchasesService.updatePurchaseOrderItem(id, itemData);
@@ -138,13 +138,13 @@ export const updatePurchaseOrderItem = async (req: AuthenticatedRequest, res: Re
     res.json({
       success: true,
       data: item,
-      message: 'Purchase order item updated successfully'
+      message: 'Purchase order item updated successfully',
     });
   } catch (error) {
     console.error('Error updating purchase order item:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update purchase order item'
+      message: 'Failed to update purchase order item',
     });
   }
 };
@@ -157,19 +157,19 @@ export const receivePurchaseOrderItem = async (req: AuthenticatedRequest, res: R
     const item = await PurchasesService.receivePurchaseOrderItem(
       id, 
       quantity_received, 
-      received_date
+      received_date,
     );
     
     res.json({
       success: true,
       data: item,
-      message: 'Purchase order item received successfully'
+      message: 'Purchase order item received successfully',
     });
   } catch (error) {
     console.error('Error receiving purchase order item:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to receive purchase order item'
+      message: 'Failed to receive purchase order item',
     });
   }
 };
@@ -179,20 +179,20 @@ export const getSuppliers = async (req: AuthenticatedRequest, res: Response): Pr
   try {
     const filters = {
       is_active: req.query.is_active ? req.query.is_active === 'true' : undefined,
-      search: req.query.search as string
+      search: req.query.search as string,
     };
 
     const suppliers = await PurchasesService.getSuppliers(filters);
     
     res.json({
       success: true,
-      data: suppliers
+      data: suppliers,
     });
   } catch (error) {
     console.error('Error fetching suppliers:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch suppliers'
+      message: 'Failed to fetch suppliers',
     });
   }
 };
@@ -204,13 +204,13 @@ export const getSupplierById = async (req: AuthenticatedRequest, res: Response):
     
     res.json({
       success: true,
-      data: supplier
+      data: supplier,
     });
   } catch (error) {
     console.error('Error fetching supplier:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch supplier'
+      message: 'Failed to fetch supplier',
     });
   }
 };
@@ -220,7 +220,7 @@ export const createSupplier = async (req: AuthenticatedRequest, res: Response): 
     const supplierData = {
       ...req.body,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const supplier = await PurchasesService.createSupplier(supplierData);
@@ -228,13 +228,13 @@ export const createSupplier = async (req: AuthenticatedRequest, res: Response): 
     res.status(201).json({
       success: true,
       data: supplier,
-      message: 'Supplier created successfully'
+      message: 'Supplier created successfully',
     });
   } catch (error) {
     console.error('Error creating supplier:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create supplier'
+      message: 'Failed to create supplier',
     });
   }
 };
@@ -244,7 +244,7 @@ export const updateSupplier = async (req: AuthenticatedRequest, res: Response): 
     const { id } = req.params;
     const supplierData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const supplier = await PurchasesService.updateSupplier(id, supplierData);
@@ -252,13 +252,13 @@ export const updateSupplier = async (req: AuthenticatedRequest, res: Response): 
     res.json({
       success: true,
       data: supplier,
-      message: 'Supplier updated successfully'
+      message: 'Supplier updated successfully',
     });
   } catch (error) {
     console.error('Error updating supplier:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update supplier'
+      message: 'Failed to update supplier',
     });
   }
 };
@@ -269,20 +269,20 @@ export const getPurchaseReport = async (req: AuthenticatedRequest, res: Response
     const filters = {
       date_from: req.query.date_from as string,
       date_to: req.query.date_to as string,
-      supplier_id: req.query.supplier_id as string
+      supplier_id: req.query.supplier_id as string,
     };
 
     const report = await PurchasesService.getPurchaseReport(filters);
     
     res.json({
       success: true,
-      data: report
+      data: report,
     });
   } catch (error) {
     console.error('Error fetching purchase report:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch purchase report'
+      message: 'Failed to fetch purchase report',
     });
   }
 };
@@ -291,20 +291,20 @@ export const getSupplierPerformance = async (req: AuthenticatedRequest, res: Res
   try {
     const filters = {
       date_from: req.query.date_from as string,
-      date_to: req.query.date_to as string
+      date_to: req.query.date_to as string,
     };
 
     const performance = await PurchasesService.getSupplierPerformance(filters);
     
     res.json({
       success: true,
-      data: performance
+      data: performance,
     });
   } catch (error) {
     console.error('Error fetching supplier performance:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch supplier performance'
+      message: 'Failed to fetch supplier performance',
     });
   }
 };
@@ -316,13 +316,13 @@ export const getPurchasesDashboard = async (req: AuthenticatedRequest, res: Resp
     
     res.json({
       success: true,
-      data: dashboard
+      data: dashboard,
     });
   } catch (error) {
     console.error('Error fetching purchases dashboard:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch purchases dashboard'
+      message: 'Failed to fetch purchases dashboard',
     });
   }
 };

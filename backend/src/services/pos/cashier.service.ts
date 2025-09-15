@@ -8,7 +8,7 @@ import type {
   TransactionItem,
   Payment,
   OrderItem,
-  SalesOrder
+  SalesOrder,
 } from '@shared/types/database';
 
 export class POSCashierService {
@@ -19,12 +19,12 @@ export class POSCashierService {
         transactionsResult,
         productsResult,
         customersResult,
-        sessionsResult
+        sessionsResult,
       ] = await Promise.all([
         supabaseAdmin.from('pos_transactions').select('id', { count: 'exact' }),
         supabaseAdmin.from('products').select('id', { count: 'exact' }),
         supabaseAdmin.from('customers').select('id', { count: 'exact' }),
-        supabaseAdmin.from('pos_sessions').select('id', { count: 'exact' })
+        supabaseAdmin.from('pos_sessions').select('id', { count: 'exact' }),
       ]);
 
       return {
@@ -32,7 +32,7 @@ export class POSCashierService {
         totalProducts: productsResult.count || 0,
         totalCustomers: customersResult.count || 0,
         activeSessions: sessionsResult.count || 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch POS dashboard: ${error}`);
@@ -88,8 +88,8 @@ export class POSCashierService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch products: ${error}`);
@@ -175,8 +175,8 @@ export class POSCashierService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch customers: ${error}`);
@@ -300,8 +300,8 @@ export class POSCashierService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch transactions: ${error}`);
@@ -373,7 +373,7 @@ export class POSCashierService {
         .from('pos_transactions')
         .update({
           transaction_type: 'void',
-          notes: 'Transaction cancelled'
+          notes: 'Transaction cancelled',
         })
         .eq('id', id)
         .select()
@@ -515,7 +515,7 @@ export class POSCashierService {
         .update({
           ...closingData,
           end_time: new Date().toISOString(),
-          status: 'closed'
+          status: 'closed',
         })
         .eq('id', id)
         .select()
@@ -570,7 +570,7 @@ export class POSCashierService {
         transaction,
         items,
         payments,
-        generated_at: new Date().toISOString()
+        generated_at: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to generate receipt: ${error}`);
@@ -605,7 +605,7 @@ export class POSCashierService {
         date,
         totalSales,
         totalTransactions,
-        transactions: data || []
+        transactions: data || [],
       };
     } catch (error) {
       throw new Error(`Failed to fetch daily report: ${error}`);
@@ -646,7 +646,7 @@ export class POSCashierService {
         totalSales,
         totalTransactions,
         transactions: data || [],
-        filters
+        filters,
       };
     } catch (error) {
       throw new Error(`Failed to fetch sales report: ${error}`);

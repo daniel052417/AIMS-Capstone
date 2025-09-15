@@ -8,20 +8,20 @@ export const getAccounts = async (req: AuthenticatedRequest, res: Response): Pro
     const filters = {
       account_type: req.query.account_type as string,
       is_active: req.query.is_active ? req.query.is_active === 'true' : undefined,
-      search: req.query.search as string
+      search: req.query.search as string,
     };
 
     const result = await AccountsService.getAccounts(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching accounts:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch accounts'
+      message: 'Failed to fetch accounts',
     });
   }
 };
@@ -33,13 +33,13 @@ export const getAccountById = async (req: AuthenticatedRequest, res: Response): 
     
     res.json({
       success: true,
-      data: account
+      data: account,
     });
   } catch (error) {
     console.error('Error fetching account:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch account'
+      message: 'Failed to fetch account',
     });
   }
 };
@@ -49,7 +49,7 @@ export const createAccount = async (req: AuthenticatedRequest, res: Response): P
     const accountData = {
       ...req.body,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const account = await AccountsService.createAccount(accountData);
@@ -57,13 +57,13 @@ export const createAccount = async (req: AuthenticatedRequest, res: Response): P
     res.status(201).json({
       success: true,
       data: account,
-      message: 'Account created successfully'
+      message: 'Account created successfully',
     });
   } catch (error) {
     console.error('Error creating account:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create account'
+      message: 'Failed to create account',
     });
   }
 };
@@ -73,7 +73,7 @@ export const updateAccount = async (req: AuthenticatedRequest, res: Response): P
     const { id } = req.params;
     const accountData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const account = await AccountsService.updateAccount(id, accountData);
@@ -81,13 +81,13 @@ export const updateAccount = async (req: AuthenticatedRequest, res: Response): P
     res.json({
       success: true,
       data: account,
-      message: 'Account updated successfully'
+      message: 'Account updated successfully',
     });
   } catch (error) {
     console.error('Error updating account:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update account'
+      message: 'Failed to update account',
     });
   }
 };
@@ -99,13 +99,13 @@ export const deleteAccount = async (req: AuthenticatedRequest, res: Response): P
     
     res.json({
       success: true,
-      message: 'Account deleted successfully'
+      message: 'Account deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting account:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete account'
+      message: 'Failed to delete account',
     });
   }
 };
@@ -116,20 +116,20 @@ export const getGLTransactions = async (req: AuthenticatedRequest, res: Response
     const filters = {
       status: req.query.status as string,
       date_from: req.query.date_from as string,
-      date_to: req.query.date_to as string
+      date_to: req.query.date_to as string,
     };
 
     const result = await AccountsService.getGLTransactions(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching GL transactions:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch GL transactions'
+      message: 'Failed to fetch GL transactions',
     });
   }
 };
@@ -141,13 +141,13 @@ export const getGLTransactionById = async (req: AuthenticatedRequest, res: Respo
     
     res.json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   } catch (error) {
     console.error('Error fetching GL transaction:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch GL transaction'
+      message: 'Failed to fetch GL transaction',
     });
   }
 };
@@ -161,13 +161,13 @@ export const createGLTransaction = async (req: AuthenticatedRequest, res: Respon
     res.status(201).json({
       success: true,
       data: transaction,
-      message: 'GL transaction created successfully'
+      message: 'GL transaction created successfully',
     });
   } catch (error) {
     console.error('Error creating GL transaction:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create GL transaction'
+      message: 'Failed to create GL transaction',
     });
   }
 };
@@ -180,7 +180,7 @@ export const postGLTransaction = async (req: AuthenticatedRequest, res: Response
     if (!postedByUserId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -190,13 +190,13 @@ export const postGLTransaction = async (req: AuthenticatedRequest, res: Response
     res.json({
       success: true,
       data: transaction,
-      message: 'GL transaction posted successfully'
+      message: 'GL transaction posted successfully',
     });
   } catch (error) {
     console.error('Error posting GL transaction:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to post GL transaction'
+      message: 'Failed to post GL transaction',
     });
   }
 };
@@ -208,20 +208,20 @@ export const getExpenses = async (req: AuthenticatedRequest, res: Response): Pro
       status: req.query.status as string,
       category: req.query.category as string,
       date_from: req.query.date_from as string,
-      date_to: req.query.date_to as string
+      date_to: req.query.date_to as string,
     };
 
     const result = await AccountsService.getExpenses(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching expenses:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch expenses'
+      message: 'Failed to fetch expenses',
     });
   }
 };
@@ -232,7 +232,7 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
       ...req.body,
       recorded_by_user_id: req.user?.id,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const expense = await AccountsService.createExpense(expenseData);
@@ -240,13 +240,13 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
     res.status(201).json({
       success: true,
       data: expense,
-      message: 'Expense created successfully'
+      message: 'Expense created successfully',
     });
   } catch (error) {
     console.error('Error creating expense:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create expense'
+      message: 'Failed to create expense',
     });
   }
 };
@@ -256,7 +256,7 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
     const { id } = req.params;
     const expenseData = {
       ...req.body,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const expense = await AccountsService.updateExpense(id, expenseData);
@@ -264,13 +264,13 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
     res.json({
       success: true,
       data: expense,
-      message: 'Expense updated successfully'
+      message: 'Expense updated successfully',
     });
   } catch (error) {
     console.error('Error updating expense:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update expense'
+      message: 'Failed to update expense',
     });
   }
 };
@@ -283,7 +283,7 @@ export const approveExpense = async (req: AuthenticatedRequest, res: Response): 
     if (!approvedByUserId) {
       res.status(401).json({
         success: false,
-        message: 'User not authenticated'
+        message: 'User not authenticated',
       });
       return;
     }
@@ -293,13 +293,13 @@ export const approveExpense = async (req: AuthenticatedRequest, res: Response): 
     res.json({
       success: true,
       data: expense,
-      message: 'Expense approved successfully'
+      message: 'Expense approved successfully',
     });
   } catch (error) {
     console.error('Error approving expense:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to approve expense'
+      message: 'Failed to approve expense',
     });
   }
 };
@@ -309,20 +309,20 @@ export const getTrialBalance = async (req: AuthenticatedRequest, res: Response):
   try {
     const filters = {
       date_from: req.query.date_from as string,
-      date_to: req.query.date_to as string
+      date_to: req.query.date_to as string,
     };
 
     const result = await AccountsService.getTrialBalance(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching trial balance:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch trial balance'
+      message: 'Failed to fetch trial balance',
     });
   }
 };
@@ -331,20 +331,20 @@ export const getProfitAndLoss = async (req: AuthenticatedRequest, res: Response)
   try {
     const filters = {
       date_from: req.query.date_from as string,
-      date_to: req.query.date_to as string
+      date_to: req.query.date_to as string,
     };
 
     const result = await AccountsService.getProfitAndLoss(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching profit and loss:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch profit and loss'
+      message: 'Failed to fetch profit and loss',
     });
   }
 };
@@ -352,20 +352,20 @@ export const getProfitAndLoss = async (req: AuthenticatedRequest, res: Response)
 export const getBalanceSheet = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const filters = {
-      date: req.query.date as string
+      date: req.query.date as string,
     };
 
     const result = await AccountsService.getBalanceSheet(filters);
     
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Error fetching balance sheet:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch balance sheet'
+      message: 'Failed to fetch balance sheet',
     });
   }
 };

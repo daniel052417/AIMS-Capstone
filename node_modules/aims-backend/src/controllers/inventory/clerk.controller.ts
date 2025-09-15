@@ -8,7 +8,7 @@ export class InventoryClerkController {
     const dashboard = await InventoryClerkService.getDashboard();
     res.json({
       success: true,
-      data: dashboard
+      data: dashboard,
     });
   });
 
@@ -18,7 +18,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getProducts(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -27,7 +27,7 @@ export class InventoryClerkController {
     const product = await InventoryClerkService.getProductById(id);
     res.json({
       success: true,
-      data: product
+      data: product,
     });
   });
 
@@ -36,7 +36,7 @@ export class InventoryClerkController {
     const product = await InventoryClerkService.createProduct(productData);
     res.status(201).json({
       success: true,
-      data: product
+      data: product,
     });
   });
 
@@ -46,7 +46,7 @@ export class InventoryClerkController {
     const product = await InventoryClerkService.updateProduct(id, productData);
     res.json({
       success: true,
-      data: product
+      data: product,
     });
   });
 
@@ -55,7 +55,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.deleteProduct(id);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -65,7 +65,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getCategories(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -74,7 +74,7 @@ export class InventoryClerkController {
     const category = await InventoryClerkService.getCategoryById(id);
     res.json({
       success: true,
-      data: category
+      data: category,
     });
   });
 
@@ -83,7 +83,7 @@ export class InventoryClerkController {
     const category = await InventoryClerkService.createCategory(categoryData);
     res.status(201).json({
       success: true,
-      data: category
+      data: category,
     });
   });
 
@@ -93,7 +93,7 @@ export class InventoryClerkController {
     const category = await InventoryClerkService.updateCategory(id, categoryData);
     res.json({
       success: true,
-      data: category
+      data: category,
     });
   });
 
@@ -102,7 +102,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.deleteCategory(id);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -112,7 +112,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getSuppliers(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -121,7 +121,7 @@ export class InventoryClerkController {
     const supplier = await InventoryClerkService.getSupplierById(id);
     res.json({
       success: true,
-      data: supplier
+      data: supplier,
     });
   });
 
@@ -130,7 +130,7 @@ export class InventoryClerkController {
     const supplier = await InventoryClerkService.createSupplier(supplierData);
     res.status(201).json({
       success: true,
-      data: supplier
+      data: supplier,
     });
   });
 
@@ -140,7 +140,7 @@ export class InventoryClerkController {
     const supplier = await InventoryClerkService.updateSupplier(id, supplierData);
     res.json({
       success: true,
-      data: supplier
+      data: supplier,
     });
   });
 
@@ -149,7 +149,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.deleteSupplier(id);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -159,7 +159,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getInventoryTransactions(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -168,7 +168,7 @@ export class InventoryClerkController {
     const transaction = await InventoryClerkService.createInventoryTransaction(transactionData);
     res.status(201).json({
       success: true,
-      data: transaction
+      data: transaction,
     });
   });
 
@@ -178,7 +178,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getStockAdjustments(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -187,7 +187,7 @@ export class InventoryClerkController {
     const adjustment = await InventoryClerkService.createStockAdjustment(adjustmentData);
     res.status(201).json({
       success: true,
-      data: adjustment
+      data: adjustment,
     });
   });
 
@@ -197,7 +197,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getStockMovements(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -207,7 +207,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getPurchaseOrders(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -216,7 +216,7 @@ export class InventoryClerkController {
     const order = await InventoryClerkService.getPurchaseOrderById(id);
     res.json({
       success: true,
-      data: order
+      data: order,
     });
   });
 
@@ -225,7 +225,7 @@ export class InventoryClerkController {
     const order = await InventoryClerkService.createPurchaseOrder(orderData);
     res.status(201).json({
       success: true,
-      data: order
+      data: order,
     });
   });
 
@@ -235,7 +235,7 @@ export class InventoryClerkController {
     const order = await InventoryClerkService.updatePurchaseOrder(id, orderData);
     res.json({
       success: true,
-      data: order
+      data: order,
     });
   });
 
@@ -245,7 +245,7 @@ export class InventoryClerkController {
     const items = await InventoryClerkService.getPurchaseOrderItems(orderId);
     res.json({
       success: true,
-      data: items
+      data: items,
     });
   });
 
@@ -254,7 +254,7 @@ export class InventoryClerkController {
     const item = await InventoryClerkService.createPurchaseOrderItem(itemData);
     res.status(201).json({
       success: true,
-      data: item
+      data: item,
     });
   });
 
@@ -264,7 +264,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getStockAlerts(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -273,7 +273,7 @@ export class InventoryClerkController {
     const alert = await InventoryClerkService.resolveStockAlert(id);
     res.json({
       success: true,
-      data: alert
+      data: alert,
     });
   });
 
@@ -283,7 +283,7 @@ export class InventoryClerkController {
     const result = await InventoryClerkService.getInventoryCounts(filters);
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   });
 
@@ -292,7 +292,7 @@ export class InventoryClerkController {
     const count = await InventoryClerkService.createInventoryCount(countData);
     res.status(201).json({
       success: true,
-      data: count
+      data: count,
     });
   });
 
@@ -301,7 +301,7 @@ export class InventoryClerkController {
     const items = await InventoryClerkService.getInventoryCountItems(countId);
     res.json({
       success: true,
-      data: items
+      data: items,
     });
   });
 
@@ -310,7 +310,7 @@ export class InventoryClerkController {
     const item = await InventoryClerkService.createInventoryCountItem(itemData);
     res.status(201).json({
       success: true,
-      data: item
+      data: item,
     });
   });
 
@@ -320,7 +320,7 @@ export class InventoryClerkController {
     const report = await InventoryClerkService.getInventoryReport(filters);
     res.json({
       success: true,
-      data: report
+      data: report,
     });
   });
 
@@ -329,7 +329,7 @@ export class InventoryClerkController {
     const report = await InventoryClerkService.getStockMovementReport(filters);
     res.json({
       success: true,
-      data: report
+      data: report,
     });
   });
 }

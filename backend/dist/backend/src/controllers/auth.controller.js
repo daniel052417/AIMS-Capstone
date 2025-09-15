@@ -49,7 +49,7 @@ exports.login = (0, errorHandler_1.asyncHandler)(async (req, res) => {
 });
 exports.register = (0, errorHandler_1.asyncHandler)(async (req, res) => {
     try {
-        const { email, password, first_name, last_name, role, department } = req.body;
+        const { email, password, first_name, last_name, role } = req.body;
         if (!email || !password || !first_name || !last_name) {
             res.status(400).json({
                 success: false,
@@ -84,8 +84,7 @@ exports.register = (0, errorHandler_1.asyncHandler)(async (req, res) => {
             password,
             first_name: first_name.trim(),
             last_name: last_name.trim(),
-            role: role || 'user',
-            department: department || null
+            role: role || 'user'
         };
         const result = await auth_service_1.AuthService.register(userData);
         if (!result.success) {

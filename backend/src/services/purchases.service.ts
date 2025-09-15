@@ -4,7 +4,7 @@ import type {
   PurchaseOrderItem, 
   Supplier,
   Product,
-  InventoryMovement
+  InventoryMovement,
 } from '@shared/types/database';
 
 export class PurchasesService {
@@ -78,8 +78,8 @@ export class PurchasesService {
           page,
           limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit)
-        }
+          pages: Math.ceil((count || 0) / limit),
+        },
       };
     } catch (error) {
       throw new Error(`Failed to fetch purchase orders: ${error}`);
@@ -152,7 +152,7 @@ export class PurchasesService {
         tax_amount: taxAmount,
         total_amount: totalAmount,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       const { data: order, error: orderError } = await supabaseAdmin
@@ -169,7 +169,7 @@ export class PurchasesService {
         purchase_order_id: order.id,
         line_total: item.quantity_ordered * item.unit_cost,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       }));
 
       const { data: orderItems, error: itemsError } = await supabaseAdmin
@@ -181,7 +181,7 @@ export class PurchasesService {
 
       return {
         ...order,
-        items: orderItems
+        items: orderItems,
       };
     } catch (error) {
       throw new Error(`Failed to create purchase order: ${error}`);
@@ -194,7 +194,7 @@ export class PurchasesService {
         .from('purchase_orders')
         .update({
           ...orderData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -214,7 +214,7 @@ export class PurchasesService {
         .update({
           status: 'confirmed',
           approved_by_user_id: approvedByUserId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -234,7 +234,7 @@ export class PurchasesService {
         .from('purchase_order_items')
         .update({
           ...itemData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -265,7 +265,7 @@ export class PurchasesService {
         .update({
           quantity_received: newQuantityReceived,
           received_date: receivedDate || new Date().toISOString().split('T')[0],
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -377,7 +377,7 @@ export class PurchasesService {
         .from('products')
         .update({ 
           stock_quantity: newStockQuantity,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', productId);
 
@@ -389,10 +389,10 @@ export class PurchasesService {
         .insert([{
           product_id: productId,
           movement_type: movementType,
-          quantity: quantity,
+          quantity,
           reference_type: 'purchase_order',
           notes: `Stock ${movementType} from purchase order`,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         }]);
 
       if (movementError) throw movementError;
@@ -414,7 +414,7 @@ export class PurchasesService {
       if (itemsError) throw itemsError;
 
       const allItemsReceived = items.every(item => 
-        (item.quantity_received || 0) >= item.quantity_ordered
+        (item.quantity_received || 0) >= item.quantity_ordered,
       );
 
       if (allItemsReceived) {
@@ -424,7 +424,7 @@ export class PurchasesService {
           .update({
             status: 'received',
             actual_delivery_date: new Date().toISOString().split('T')[0],
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', orderId);
 
@@ -444,7 +444,7 @@ export class PurchasesService {
         .rpc('get_purchase_report', {
           p_date_from: filters.date_from,
           p_date_to: filters.date_to,
-          p_supplier_id: filters.supplier_id
+          p_supplier_id: filters.supplier_id,
         });
 
       if (error) throw error;
@@ -459,7 +459,7 @@ export class PurchasesService {
       const { data, error } = await supabaseAdmin
         .rpc('get_supplier_performance', {
           p_date_from: filters.date_from,
-          p_date_to: filters.date_to
+          p_date_to: filters.date_to,
         });
 
       if (error) throw error;
@@ -476,12 +476,12 @@ export class PurchasesService {
         totalOrders,
         pendingOrders,
         totalValue,
-        topSuppliers
+        topSuppliers,
       ] = await Promise.all([
         supabaseAdmin.from('purchase_orders').select('id', { count: 'exact' }),
         supabaseAdmin.from('purchase_orders').select('id', { count: 'exact' }).eq('status', 'draft'),
         supabaseAdmin.from('purchase_orders').select('total_amount'),
-        supabaseAdmin.rpc('get_top_suppliers', { p_limit: 5 })
+        supabaseAdmin.rpc('get_top_suppliers', { p_limit: 5 }),
       ]);
 
       const totalValueAmount = totalValue.data?.reduce((sum, order) => sum + order.total_amount, 0) || 0;
@@ -491,7 +491,7 @@ export class PurchasesService {
         pendingOrders: pendingOrders.count || 0,
         totalValue: totalValueAmount,
         topSuppliers: topSuppliers.data || [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new Error(`Failed to fetch purchases dashboard: ${error}`);

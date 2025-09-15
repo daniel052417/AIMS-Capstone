@@ -163,6 +163,101 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Add to supabase-rpc-functions.sql
+CREATE OR REPLACE FUNCTION get_pos_dashboard_data()
+RETURNS TABLE(
+  total_sales_today numeric,
+  total_transactions_today bigint,
+  total_customers_today bigint,
+  average_transaction_value numeric,
+  low_stock_products bigint,
+  recent_transactions jsonb,
+  top_products jsonb
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH today_sales AS (
+    SELECT 
+      COALESCE(SUM(st.total_amount), 0) as total_sales,
+      COUNT(st.id) as transaction_count,
+      COUNT(DISTINCT st.customer_id) as customer_count,
+      CASE 
+        WHEN COUNT(st.id) > 0 THEN COALESCE(SUM(st.total_amount), 0) / COUNT(st.id)
+        ELSE 0
+      END as avg_transaction
+    FROM sales_transactions st
+    WHERE DATE(st.transaction_date) = CURRENT_DATE
+  ),
+  low_stock AS (
+    SELECT COUNT(*) as low_stock_count
+    FROM products p
+    WHERE p.stock_quantity <= p.minimum_stock AND p.is_active = true
+  ),
+  recent_trans AS (
+    SELECT COALESCE(jsonb_agg(
+      jsonb_build_object(
+        'id', st.id,
+        'transaction_number', st.transaction_number,
+        'total_amount', st.total_amount,
+        'customer_name', COALESCE(c.first_name || ' ' || c.last_name, 'Walk-in'),
+        'transaction_date', st.transaction_date
+      ) ORDER BY st.transaction_date DESC
+    ), '[]'::jsonb) as transactions
+    FROM sales_transactions st
+    LEFT JOIN customers c ON st.customer_id = c.id
+    WHERE DATE(st.transaction_date) = CURRENT_DATE
+    LIMIT 5
+  ),
+  top_prods AS (
+    SELECT COALESCE(jsonb_agg(
+      jsonb_build_object(
+        'id', p.id,
+        'name', p.name,
+        'sku', p.sku,
+        'total_sold', COALESCE(SUM(ti.quantity), 0),
+        'revenue', COALESCE(SUM(ti.line_total), 0)
+      ) ORDER BY COALESCE(SUM(ti.line_total), 0) DESC
+    ), '[]'::jsonb) as products
+    FROM products p
+    LEFT JOIN transaction_items ti ON p.id = ti.product_id
+    LEFT JOIN sales_transactions st ON ti.transaction_id = st.id
+    WHERE DATE(st.transaction_date) = CURRENT_DATE
+    GROUP BY p.id, p.name, p.sku
+    LIMIT 5
+  )
+  SELECT 
+    ts.total_sales,
+    ts.transaction_count,
+    ts.customer_count,
+    ts.avg_transaction,
+    ls.low_stock_count,
+    rt.transactions,
+    tp.products
+  FROM today_sales ts
+  CROSS JOIN low_stock ls
+  CROSS JOIN recent_trans rt
+  CROSS JOIN top_prods tp;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add missing columns if not already added
+ALTER TABLE transaction_items 
+ADD COLUMN IF NOT EXISTS total_price numeric(10,2) DEFAULT 0;
+
+ALTER TABLE payments 
+ADD COLUMN IF NOT EXISTS transaction_id uuid REFERENCES sales_transactions(id),
+ADD COLUMN IF NOT EXISTS amount_paid numeric(12,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS status text DEFAULT 'completed';
+
+ALTER TABLE pos_sessions 
+ADD COLUMN IF NOT EXISTS cashier_id uuid REFERENCES users(id),
+ADD COLUMN IF NOT EXISTS closing_cash_amount numeric(12,2),
+ADD COLUMN IF NOT EXISTS total_sales numeric(12,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_transactions integer DEFAULT 0;
+
+ALTER TABLE sales_transactions 
+ADD COLUMN IF NOT EXISTS created_by_user_id uuid REFERENCES users(id);
+
 -- 4. Create Sales Order with Transaction
 CREATE OR REPLACE FUNCTION create_sales_order_transaction(
   p_order_data jsonb,
