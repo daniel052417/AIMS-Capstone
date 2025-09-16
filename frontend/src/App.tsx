@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import type { supabase, UserProfile } from './lib/supabase';
+import { type UserProfile, type UserRole } from './lib/supabase';
+import { authService } from './services/authService';
+import { productsService } from './services/productsService';
+import { apiClient } from './services/api';
 import LoginPage from './pages/auth/LoginPage';
 import AdminDashboard from './pages/super-admin';
 import POSInterface from './pages/pos/cashier/POSInterface';
+import { DebugInfo } from './components/DebugInfo';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -18,70 +22,46 @@ function App() {
   useEffect(() => {
     checkAuthStatus();
   }, []);
-
   const checkAuthStatus = async () => {
     try {
-      // For development: Auto-login as admin
-      const mockUser: UserProfile = {
-        id: 'dev-admin-1',
-        email: 'admin@agrivet.com',
-        first_name: 'Admin',
-        last_name: 'User',
-        role: 'admin',
-        is_active: true,
-        phone: '+1234567890',
-        avatar_url: '',
-        last_login: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      setUser(mockUser);
-      setIsCheckingAuth(false);
-      
-      // Uncomment below for real authentication:
-      // const { data: { session } } = await supabase.auth.getSession();
-      // if (session?.user) {
-      //   await fetchUserProfile(session.user.id);
-      // }
+      // Check if we have a token
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        // Try to get user profile
+        const response = await authService.getProfile();
+        if (response.success && response.data) {
+          // Convert AuthUserProfile to UserProfile
+          const userData: UserProfile = {
+            id: response.data.id,
+            email: response.data.email,
+            first_name: response.data.first_name,
+            last_name: response.data.last_name,
+            role: response.data.role as UserRole,
+            is_active: response.data.is_active,
+            phone: response.data.phone,
+            avatar_url: response.data.avatar_url,
+            last_login: response.data.last_login,
+            created_at: response.data.created_at,
+            updated_at: response.data.updated_at
+          };
+          setUser(userData);
+        }
+      }
     } catch (error) {
       console.error('Error checking auth status:', error);
+      // Clear invalid token
+      localStorage.removeItem('auth_token');
+    } finally {
       setIsCheckingAuth(false);
     }
   };
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setUser(data);
-        // Update last login
-        await supabase
-          .from('users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', userId);
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      setError('Failed to load user profile');
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Basic validation
     if (!username.trim() || !password.trim()) {
       setError('Please enter both username and password');
       setIsLoading(false);
@@ -89,33 +69,34 @@ function App() {
     }
 
     try {
-      // Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const response = await authService.login({
         email: username,
         password: password,
       });
 
-      if (authError) {
-        throw authError;
-      }
-
-      if (authData.user) {
-        // Fetch user profile from users table
-        await fetchUserProfile(authData.user.id);
+      if (response.success && response.data) {
+        // Store token
+        localStorage.setItem('auth_token', response.data.token);
+        
+        // Set user data - convert to UserProfile format
+        const userData: UserProfile = {
+          id: response.data.user.id,
+          email: response.data.user.email,
+          first_name: response.data.user.first_name,
+          last_name: response.data.user.last_name,
+          role: response.data.user.role as UserRole,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setUser(userData);
+        setError('');
+      } else {
+        setError(response.message || 'Login failed');
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      
-      // Handle specific error messages
-      if (error.message?.includes('Invalid login credentials')) {
-        setError('Invalid username or password');
-      } else if (error.message?.includes('Email not confirmed')) {
-        setError('Please confirm your email address');
-      } else if (error.message?.includes('Too many requests')) {
-        setError('Too many login attempts. Please try again later');
-      } else {
-        setError('Login failed. Please try again');
-      }
+      setError(error.message || 'Login failed. Please try again');
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +104,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await authService.logout();
       setUser(null);
       setUsername('');
       setPassword('');
@@ -132,6 +113,25 @@ function App() {
       console.error('Logout error:', error);
     }
   };
+
+  // Test API call function
+  const testApiCall = async () => {
+    try {
+      console.log('Testing API connection...');
+      
+      // Test health check
+      const healthResponse = await apiClient.get('/health');
+      console.log('Health check:', healthResponse);
+      
+      // Test products API
+      const productsResponse = await productsService.getProducts({ limit: 5 });
+      console.log('Products:', productsResponse);
+      
+    } catch (error) {
+      console.error('API test failed:', error);
+    }
+  };
+
 
   // Show loading spinner while checking authentication
   if (isCheckingAuth) {
@@ -147,28 +147,48 @@ function App() {
 
   // Role-based dashboard rendering
   if (user) {
-    // Cashiers go directly to POS system
-    if (user.role === 'cashier') {
-      return <POSInterface user={user} onLogout={handleLogout} />;
+    // Add test button for development
+    if (process.env.NODE_ENV === 'development') {
+      return (
+        <div>
+          <button 
+            onClick={testApiCall}
+            className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Test API
+          </button>
+          {user.role === 'cashier' ? (
+            <POSInterface user={user} onLogout={handleLogout} />
+          ) : (
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          )}
+        </div>
+      );
     }
     
-    // All other roles (admin, manager, staff, etc.) go to admin dashboard
-    return <AdminDashboard user={user} onLogout={handleLogout} />;
+    return user.role === 'cashier' ? (
+      <POSInterface user={user} onLogout={handleLogout} />
+    ) : (
+      <AdminDashboard user={user} onLogout={handleLogout} />
+    );
   }
 
   // Login form
   return (
-    <LoginPage
-      username={username}
-      password={password}
-      showPassword={showPassword}
-      isLoading={isLoading}
-      error={error}
-      onUsernameChange={setUsername}
-      onPasswordChange={setPassword}
-      onToggleShowPassword={() => setShowPassword(!showPassword)}
-      onLoginSubmit={handleLogin}
-    />
+    <div>
+      <LoginPage
+        username={username}
+        password={password}
+        showPassword={showPassword}
+        isLoading={isLoading}
+        error={error}
+        onUsernameChange={setUsername}
+        onPasswordChange={setPassword}
+        onToggleShowPassword={() => setShowPassword(!showPassword)}
+        onLoginSubmit={handleLogin}
+      />
+      <DebugInfo />
+    </div>
   );
 }
 
