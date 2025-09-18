@@ -89,7 +89,17 @@ export const authenticateToken = async (
     }
 
     // Extract role names from the joined data
-    const roles = userRoles?.map(ur => ur.roles?.name).filter(Boolean) || [];
+    type UserRoleRecord = {
+      roles: { name: string } | { name: string }[] | null;
+    };
+    
+    const typedUserRoles = userRoles as UserRoleRecord[];
+    
+    const roles =
+      typedUserRoles?.flatMap(ur =>
+        Array.isArray(ur.roles) ? ur.roles.map(r => r.name) : [ur.roles?.name]
+      ).filter((name): name is string => Boolean(name)) ?? [];
+    
 
     // Attach user info with roles to request
     req.user = {
@@ -140,8 +150,17 @@ export const optionalAuth = async (
         `)
         .eq('user_id', user.id);
 
-      const roles = userRoles?.map(ur => ur.roles?.name).filter(Boolean) || [];
-
+        type UserRoleRecord = {
+          roles: { name: string } | { name: string }[] | null;
+        };
+        
+        const typedUserRoles = userRoles as UserRoleRecord[];
+        
+        const roles =
+          typedUserRoles?.flatMap(ur =>
+            Array.isArray(ur.roles) ? ur.roles.map(r => r.name) : [ur.roles?.name]
+          ).filter((name): name is string => Boolean(name)) ?? [];
+        
       req.user = {
         userId: user.id,
         email: user.email,

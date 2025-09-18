@@ -28,6 +28,8 @@ export const config = {
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
   SMTP_USER: process.env.SMTP_USER,
   SMTP_PASS: process.env.SMTP_PASS,
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true',
+  SMTP_FROM: process.env.SMTP_FROM,
 };
 
 // Validation

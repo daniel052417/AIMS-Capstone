@@ -7,7 +7,8 @@ import { errorHandler } from './middleware/errorHandler';
 import routes from './routes';
 import { config } from './config/env';
 import rbacRoutes from './routes/rbac.routes';
-
+import usersRouter from './routes/activeUsers.routes';
+import staffRouter from './routes/staff.routes';
 // Load environment variables
 dotenv.config();
 
@@ -15,6 +16,8 @@ const app = express();
 const PORT = config.PORT;
 app.use(express.json());
 app.use('/v1/rbac', rbacRoutes);
+app.use('/v1/users', usersRouter);
+app.use('/v1/staff', staffRouter);
 // Security middleware
 app.use(helmet());
 
@@ -91,5 +94,7 @@ app.listen(PORT, () => {
   console.log(`🌍 Environment: ${config.NODE_ENV}`);
   console.log(`🔗 Frontend URL: ${config.FRONTEND_URL}`);
 });
+
+
 
 export default app;

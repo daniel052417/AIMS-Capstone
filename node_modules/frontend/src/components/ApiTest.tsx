@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { productsService, Product } from '../services/productsService';
+import { productsService } from '../services/productsService';
+import type { Product } from '../services/productsService';
 import { authService } from '../services/authService';
-
+import { apiClient } from '../../../frontend/src/api/apiClient';
 export const ApiTest: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);

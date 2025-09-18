@@ -2,7 +2,16 @@ import bcrypt from 'bcryptjs';
 
 export class PasswordUtils {
   private static readonly SALT_ROUNDS = 12;
-
+  static generateSecurePassword(length: number = 12): string {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * chars.length);
+      password += chars[randomIndex];
+    }
+    return password;
+  }
   static async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, this.SALT_ROUNDS);
   }
@@ -40,3 +49,6 @@ export class PasswordUtils {
     };
   }
 }
+
+  // Generate a random secure password
+  

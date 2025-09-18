@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken, requireRole, requirePermission } from '../middleware/auth';
+import { authenticateToken, requireRole} from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import * as accountsController from '../controllers/accounts.controller';
 
