@@ -22,6 +22,9 @@ export interface UserProfile {
   last_login?: string
   created_at: string
   updated_at: string
+  // New fields from backend login response
+  roles?: string[]
+  permissions?: string[]
 }
 
 // Database types

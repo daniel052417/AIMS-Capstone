@@ -1,37 +1,35 @@
 import { useState } from 'react';
-import Sidebar from '../components/layouts/Sidebar';
-import Header from '../components/layouts/Header';
-import Overview from '../pages/super-admin/Overview';
-import SalesValue from '../pages/super-admin/SalesValue';
-import AllSalesRecords from '../pages/super-admin/AllSalesRecords';
-import SalesDashboard from '../pages/super-admin/SalesDashboard';
-import DailySalesSummary from '../pages/super-admin/DailySalesSummary';
-import ProductSalesReport from '../pages/super-admin/ProductSalesReport';
-import InventorySummaryPage from '../pages/super-admin/InventorySummaryPage';
-import InventoryManagement from '../pages/super-admin/InventoryManagement';
-import AttendanceTimesheet from '../pages/super-admin/AttendanceTimesheet';
-import RolesPermissions from '../pages/super-admin/RolesPermissions';
-import LeaveRequest from '../pages/super-admin/LeaveRequest';
-import MarketingDashboard from '../pages/super-admin/MarketingDashboard';
-import CampaignManagement from '../pages/super-admin/CampaignManagement';
-import TemplateManagement from '../pages/super-admin/TemplateManagement';
-import CampaignAnalytics from '../pages/super-admin/CampaignAnalytics';
-import ClientNotifications from '../pages/super-admin/ClientNotifications';
-import EventCenter from '../pages/super-admin/EventCenter';
-import ReportsAnalytics from '../pages/super-admin/ReportsAnalytics';
-import SettingsPage from '../pages/super-admin/SettingsPage';
-import LowStockAlerts from '../pages/super-admin/LowStockAlerts';
-import Categories from '../pages/super-admin/Categories';
-import ActiveUsers from '../pages/super-admin/ActiveUsers';
-import UserAccounts from '../pages/super-admin/UserAccounts';
-import UserActivity from '../pages/super-admin/UserActivity';
-import AddStaff from '../pages/super-admin/AddStaff';
-import UserPermissions from '../pages/super-admin/UserPermissions';
-import HRDashboard from '../pages/super-admin/HRDashboard';
-import AttendanceDashboard from '../pages/super-admin/AttendanceDashboard';
-import LeaveManagement from '../pages/super-admin/LeaveManagement';
-import HRAnalytics from '../pages/super-admin/HRAnalytics';
-import PayrollCompensation from '../pages/super-admin/PayrollCompensation';
+import Overview from '../pages/admin/Overview';
+import SalesValue from '../pages/sales/SalesValue';
+import AllSalesRecords from '../pages/sales/AllSalesRecords';
+import SalesDashboard from '../pages/sales/SalesDashboard';
+import DailySalesSummary from '../pages/sales/DailySalesSummary';
+import ProductSalesReport from '../pages/sales/ProductSalesReport';
+import InventorySummaryPage from '../pages/inventory/InventorySummaryPage';
+import InventoryManagement from '../pages/inventory/InventoryManagement';
+import AttendanceTimesheet from '../pages/hr/AttendanceTimesheet';
+import RolesPermissions from '../pages/admin/RolesPermissions';
+import LeaveRequest from '../pages/hr/LeaveRequest';
+import MarketingDashboard from '../pages/marketing/MarketingDashboard';
+import CampaignManagement from '../pages/marketing/CampaignManagement';
+import TemplateManagement from '../pages/marketing/TemplateManagement';
+import CampaignAnalytics from '../pages/marketing/CampaignAnalytics';
+import ClientNotifications from '../pages/marketing/ClientNotifications';
+import EventCenter from '../pages/reports/EventCenter';
+import ReportsAnalytics from '../pages/reports/ReportsAnalytics';
+import SettingsPage from '../pages/shared/SettingsPage';
+import LowStockAlerts from '../pages/inventory/LowStockAlerts';
+import Categories from '../pages/inventory/Categories';
+import ActiveUsers from '../pages/admin/ActiveUsers';
+import UserAccounts from '../pages/admin/UserAccounts';
+import UserActivity from '../pages/admin/UserActivity';
+import AddStaff from '../pages/hr/AddStaff';
+import UserPermissions from '../pages/admin/UserPermissions';
+import HRDashboard from '../pages/hr/HRDashboard';
+import AttendanceDashboard from '../pages/hr/AttendanceDashboard';
+import LeaveManagement from '../pages/hr/LeaveManagement';
+import HRAnalytics from '../pages/hr/HRAnalytics';
+import PayrollCompensation from '../pages/hr/PayrollCompensation';
 import { UserProfile } from '../lib/supabase';
 
 interface AdminDashboardProps {
@@ -41,7 +39,6 @@ interface AdminDashboardProps {
 
 function AdminDashboard({onLogout}: AdminDashboardProps) {
   const [activeSection, setActiveSection] = useState('overview');
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
    const renderContent = () => {
     switch (activeSection) {
@@ -178,14 +175,8 @@ function AdminDashboard({onLogout}: AdminDashboardProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} onLogout={onLogout} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100">
-          {renderContent()}
-        </main>
-      </div>
+    <div className="p-6">
+      {renderContent()}
     </div>
   );
 }

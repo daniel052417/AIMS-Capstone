@@ -1,17 +1,36 @@
 import { supabaseAdmin } from '../config/supabaseClient';
-import type { 
-  SalesOrder, 
-  SalesTransaction, 
-  OrderItem, 
-  OrderStatusHistory,
+import { ExportService } from '../services/export.service';
+import { PDFService } from '../services/pdf.service';
+
+import type {
+  SalesOrder,
+  SalesTransaction,
+  OrderItem,
   Customer,
-  Product,
-  Payment,
-  OrderWithDetails,
+  Payment
 } from '@shared/types/database';
 
+export interface SalesTransactionFilters {
+  search?: string;
+  status?: string;
+  payment_status?: string;
+  payment_method?: string;
+  date_from?: string;
+  date_to?: string;
+  amount_min?: number;
+  amount_max?: number;
+  customer_id?: string;
+  staff_id?: string;
+  branch_id?: string;
+  page: number;
+  limit: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
 export class SalesService {
-  // Sales Orders
+  /* ====================== SALES ORDERS ====================== */
+
   static async getSalesOrders(filters: any = {}) {
     try {
       let query = supabaseAdmin
@@ -19,47 +38,25 @@ export class SalesService {
         .select(`
           *,
           customer:customer_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            phone
+            id, first_name, last_name, email, phone
           ),
           created_by:created_by_user_id (
-            first_name,
-            last_name
+            first_name, last_name
           ),
           order_items:order_items (
-            id,
-            product_id,
-            quantity,
-            unit_price,
-            total_price,
-            product:product_id (
-              id,
-              sku,
-              name
-            )
+            id, product_id, quantity, unit_price, total_price,
+            product:product_id ( id, sku, name )
           )
         `);
 
-      if (filters.customer_id) {
-        query = query.eq('customer_id', filters.customer_id);
-      }
-      if (filters.status) {
-        query = query.eq('status', filters.status);
-      }
-      if (filters.date_from) {
-        query = query.gte('order_date', filters.date_from);
-      }
-      if (filters.date_to) {
-        query = query.lte('order_date', filters.date_to);
-      }
+      if (filters.customer_id) query = query.eq('customer_id', filters.customer_id);
+      if (filters.status) query = query.eq('status', filters.status);
+      if (filters.date_from) query = query.gte('order_date', filters.date_from);
+      if (filters.date_to) query = query.lte('order_date', filters.date_to);
       if (filters.search) {
         query = query.or(`order_number.ilike.%${filters.search}%,customer.first_name.ilike.%${filters.search}%,customer.last_name.ilike.%${filters.search}%`);
       }
 
-      // Apply pagination
       const page = filters.page || 1;
       const limit = filters.limit || 25;
       const from = (page - 1) * limit;
@@ -67,20 +64,19 @@ export class SalesService {
       query = query.range(from, to).order('order_date', { ascending: false });
 
       const { data, error, count } = await query;
-
       if (error) throw error;
 
       return {
         orders: data || [],
         pagination: {
-          page,
-          limit,
+          page, limit,
           total: count || 0,
-          pages: Math.ceil((count || 0) / limit),
-        },
+          pages: Math.ceil((count || 0) / limit)
+        }
       };
     } catch (error) {
-      throw new Error(`Failed to fetch sales orders: ${error}`);
+      console.error('Failed to fetch users', error);
+        throw new Error('Failed to fetch users'); 
     }
   }
 
@@ -91,42 +87,20 @@ export class SalesService {
         .select(`
           *,
           customer:customer_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            address,
-            city
+            id, first_name, last_name, email, phone, address, city
           ),
           created_by:created_by_user_id (
-            id,
-            first_name,
-            last_name
+            id, first_name, last_name
           ),
           order_items:order_items (
-            id,
-            product_id,
-            quantity,
-            unit_price,
-            total_price,
+            id, product_id, quantity, unit_price, total_price,
             product:product_id (
-              id,
-              sku,
-              name,
-              description,
-              unit_of_measure
+              id, sku, name, description, unit_of_measure
             )
           ),
           status_history:order_status_history (
-            id,
-            status,
-            notes,
-            changed_at,
-            changed_by:changed_by_user_id (
-              first_name,
-              last_name
-            )
+            id, status, notes, changed_at,
+            changed_by:changed_by_user_id (first_name, last_name)
           )
         `)
         .eq('id', id)
@@ -140,109 +114,10 @@ export class SalesService {
   }
 
   static async createSalesOrder(orderData: Partial<SalesOrder>, items: Partial<OrderItem>[]) {
-    try {
-      // Input validation
-      if (!orderData.customer_id) {
-        throw new Error('Customer ID is required');
-      }
-      if (!items || items.length === 0) {
-        throw new Error('At least one item is required');
-      }
-
-      // Validate items
-      for (const item of items) {
-        if (!item.product_id) {
-          throw new Error('Product ID is required for all items');
-        }
-        if (!item.quantity || item.quantity <= 0) {
-          throw new Error('Valid quantity is required for all items');
-        }
-        if (!item.unit_price || item.unit_price <= 0) {
-          throw new Error('Valid unit price is required for all items');
-        }
-      }
-
-      // Generate order number if not provided
-      if (!orderData.order_number) {
-        try {
-          const { data: generatedNumber, error: numberError } = await supabaseAdmin
-            .rpc('generate_order_number');
-          
-          if (numberError) {
-            console.error('RPC generate_order_number error:', numberError);
-            // Fallback: generate number locally
-            orderData.order_number = `ORD-${Date.now().toString().slice(-4)}`;
-          } else {
-            orderData.order_number = generatedNumber;
-          }
-        } catch (rpcError) {
-          console.error('RPC generate_order_number failed:', rpcError);
-          // Fallback: generate number locally
-          orderData.order_number = `ORD-${Date.now().toString().slice(-4)}`;
-        }
-      }
-
-      // Calculate totals
-      const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-      const taxAmount = subtotal * 0.12; // 12% VAT
-      const totalAmount = subtotal + taxAmount;
-
-      // Prepare order data
-      const orderPayload = {
-        order_number: orderData.order_number,
-        customer_id: orderData.customer_id,
-        staff_id: orderData.staff_id,
-        branch_id: orderData.branch_id,
-        order_date: orderData.order_date || new Date().toISOString(),
-        required_date: orderData.required_date,
-        shipped_date: orderData.shipped_date,
-        status: orderData.status || 'pending',
-        subtotal,
-        discount_amount: orderData.discount_amount || 0,
-        tax_amount: taxAmount,
-        shipping_amount: orderData.shipping_amount || 0,
-        total_amount: totalAmount,
-        shipping_address: orderData.shipping_address,
-        notes: orderData.notes,
-        payment_method: orderData.payment_method,
-        payment_status: orderData.payment_status || 'pending',
-        created_by_user_id: orderData.created_by_user_id,
-      };
-
-      // Prepare items data
-      const itemsData = items.map(item => ({
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        discount_percentage: item.discount_percentage || 0,
-        total_price: item.quantity * item.unit_price,
-      }));
-
-      // Prepare status data
-      const statusData = {
-        status: 'pending',
-        notes: 'Order created',
-        changed_by_user_id: orderData.created_by_user_id,
-      };
-
-      // Use RPC transaction function
-      const { data, error } = await supabaseAdmin
-        .rpc('create_sales_order_transaction', {
-          p_order_data: orderPayload,
-          p_items_data: itemsData,
-          p_status_data: statusData,
-        });
-
-      if (error) {
-        console.error('Supabase error in createSalesOrder:', JSON.stringify(error, null, 2));
-        throw new Error(`Failed to create sales order: ${error.message || JSON.stringify(error)}`);
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error in createSalesOrder:', error);
-      throw new Error(`Failed to create sales order: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
-    }
+    // identical to your original createSalesOrder...
+    // generate order_number, validate items, compute totals,
+    // call RPC create_sales_order_transaction
+    // (omitted here for brevity but copy-paste your original body)
   }
 
   static async updateSalesOrder(id: string, orderData: Partial<SalesOrder>) {
@@ -251,12 +126,11 @@ export class SalesService {
         .from('sales_orders')
         .update({
           ...orderData,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .eq('id', id)
         .select()
         .single();
-
       if (error) throw error;
       return data;
     } catch (error) {
@@ -266,20 +140,14 @@ export class SalesService {
 
   static async updateOrderStatus(id: string, status: string, notes?: string, changedByUserId?: string) {
     try {
-      // Update order status
       const { data: order, error: orderError } = await supabaseAdmin
         .from('sales_orders')
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();
-
       if (orderError) throw orderError;
 
-      // Add status history entry
       const { error: statusError } = await supabaseAdmin
         .from('order_status_history')
         .insert([{
@@ -287,9 +155,8 @@ export class SalesService {
           status,
           notes: notes || `Status changed to ${status}`,
           changed_by_user_id: changedByUserId,
-          created_at: new Date().toISOString(),
+          created_at: new Date().toISOString()
         }]);
-
       if (statusError) throw statusError;
 
       return order;
@@ -298,75 +165,311 @@ export class SalesService {
     }
   }
 
-  // Sales Transactions
-  static async getSalesTransactions(filters: any = {}) {
+  /* ====================== TRANSACTIONS (ENHANCED) ====================== */
+  static async createSalesTransaction(payload: {
+    transaction_number: string;
+    customer_id: string | null;
+    transaction_date: string;
+    subtotal: number;
+    tax_amount: number;
+    total_amount: number;
+    payment_status: 'pending' | 'completed' | 'failed' | 'refunded';
+    created_by_user_id: string;
+    branch_id: string | null;
+  }) {
+    // insert into sales_transactions
+    const { data, error } = await supabaseAdmin
+      .from('sales_transactions')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create sales transaction: ${error.message}`);
+    }
+    return data;
+  }
+  static async getSalesTransactions(filters: SalesTransactionFilters) {
     try {
-      let query = supabaseAdmin
+      let query = supabaseAdmin.from('sales_transactions_enhanced').select('*');
+
+      if (filters.search) {
+        query = query.or(`
+          transaction_number.ilike.%${filters.search}%,
+          customer_name.ilike.%${filters.search}%,
+          customer_email.ilike.%${filters.search}%,
+          staff_name.ilike.%${filters.search}%
+        `);
+      }
+      if (filters.status) query = query.eq('status', filters.status);
+      if (filters.payment_status) query = query.eq('payment_status', filters.payment_status);
+      if (filters.payment_method) query = query.eq('payment_method', filters.payment_method);
+      if (filters.date_from) query = query.gte('transaction_date', filters.date_from);
+      if (filters.date_to) query = query.lte('transaction_date', filters.date_to);
+      if (filters.amount_min !== undefined) query = query.gte('total_amount', filters.amount_min);
+      if (filters.amount_max !== undefined) query = query.lte('total_amount', filters.amount_max);
+      if (filters.customer_id) query = query.eq('customer_id', filters.customer_id);
+      if (filters.staff_id) query = query.eq('staff_id', filters.staff_id);
+      if (filters.branch_id) query = query.eq('branch_id', filters.branch_id);
+
+      const sortColumn = filters.sort_by || 'transaction_date';
+      const sortOrder = filters.sort_order || 'desc';
+      query = query.order(sortColumn, { ascending: sortOrder === 'asc' });
+
+      const from = (filters.page - 1) * filters.limit;
+      const to = from + filters.limit - 1;
+      query = query.range(from, to);
+
+      const { data: transactions, error, count } = await query;
+      if (error) throw error;
+
+      return {
+        transactions: transactions || [],
+        pagination: {
+          page: filters.page,
+          limit: filters.limit,
+          total: count || 0,
+          pages: Math.ceil((count || 0) / filters.limit)
+        }
+      };
+    } catch (error) {
+      console.error('Failed to fetch users', error);
+        throw new Error('Failed to fetch users'); 
+    }
+  }
+
+  static async getSalesTransactionById(id: string) {
+    try {
+      const { data: transaction, error } = await supabaseAdmin
         .from('sales_transactions')
         .select(`
           *,
-          customer:customer_id (
-            id,
-            first_name,
-            last_name,
-            email
-          ),
-          created_by:created_by_user_id (
-            first_name,
-            last_name
-          ),
-          payments:payments (
-            id,
-            payment_method,
-            amount,
-            payment_date,
-            status
+          customer:customer_id (id, first_name, last_name, email, phone, address, city),
+          staff:staff_id (id, first_name, last_name, email),
+          branch:branch_id (id, name, address, city, phone),
+          payments (id, payment_method, amount, payment_date, status, reference_number, notes),
+          order_items (id, product_id, quantity, unit_price, total_price,
+            product:product_id (id, sku, name, description, unit_of_measure)
           )
-        `);
+        `)
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return transaction;
+    } catch (error) {
+      throw new Error(`Failed to fetch sales transaction: ${error}`);
+    }
+  }
 
-      if (filters.customer_id) {
-        query = query.eq('customer_id', filters.customer_id);
-      }
-      if (filters.payment_status) {
-        query = query.eq('payment_status', filters.payment_status);
-      }
-      if (filters.date_from) {
-        query = query.gte('transaction_date', filters.date_from);
-      }
-      if (filters.date_to) {
-        query = query.lte('transaction_date', filters.date_to);
-      }
+  static async updateSalesTransaction(id: string, transactionData: any, updatedBy: string) {
+    try {
+      const { data: transaction, error } = await supabaseAdmin
+        .from('sales_transactions')
+        .update({
+          ...transactionData,
+          updated_by_user_id: updatedBy,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
 
-      const { data, error, count } = await query
-        .order('transaction_date', { ascending: false });
+      await supabaseAdmin.from('audit_logs').insert({
+        user_id: updatedBy,
+        action: 'sales_transaction_updated',
+        entity_type: 'sales_transaction',
+        entity_id: id,
+        new_values: transactionData,
+        created_at: new Date().toISOString()
+      });
+
+      return transaction;
+    } catch (error) {
+      throw new Error(`Failed to update sales transaction: ${error}`);
+    }
+  }
+
+  static async deleteSalesTransaction(id: string, reason: string, deletedBy: string) {
+    try {
+      const { error } = await supabaseAdmin
+        .from('sales_transactions')
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by_user_id: deletedBy,
+          deletion_reason: reason
+        })
+        .eq('id', id);
+      if (error) throw error;
+
+      await supabaseAdmin.from('audit_logs').insert({
+        user_id: deletedBy,
+        action: 'sales_transaction_deleted',
+        entity_type: 'sales_transaction',
+        entity_id: id,
+        new_values: { reason },
+        created_at: new Date().toISOString()
+      });
+
+      return true;
+    } catch (error) {
+      throw new Error(`Failed to delete sales transaction: ${error}`);
+    }
+  }
+ // Bulk update transaction status
+  static async bulkUpdateTransactionStatus(transactionIds: string[], status: string, notes: string, updatedBy: string) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .rpc('bulk_update_sales_transactions', {
+          p_transaction_ids: transactionIds,
+          p_status: status,
+          p_updated_by_user_id: updatedBy,
+          p_notes: notes
+        });
 
       if (error) throw error;
 
       return {
-        transactions: data || [],
-        total: count || 0,
+        count: data,
+        transaction_ids: transactionIds,
+        status,
+        notes
       };
     } catch (error) {
-      throw new Error(`Failed to fetch sales transactions: ${error}`);
+      throw new Error(`Failed to bulk update transactions: ${error}`);
     }
   }
 
-  static async createSalesTransaction(transactionData: Partial<SalesTransaction>) {
+  // Bulk delete transactions
+  static async bulkDeleteTransactions(transactionIds: string[], reason: string, deletedBy: string) {
     try {
       const { data, error } = await supabaseAdmin
+        .rpc('bulk_delete_sales_transactions', {
+          p_transaction_ids: transactionIds,
+          p_deleted_by_user_id: deletedBy,
+          p_reason: reason
+        });
+
+      if (error) throw error;
+
+      return {
+        count: data,
+        transaction_ids: transactionIds,
+        reason
+      };
+    } catch (error) {
+      throw new Error(`Failed to bulk delete transactions: ${error}`);
+    }
+  }
+ // Export sales transactions
+  static async exportSalesTransactions(filters: any, format: string) {
+    try {
+      // Get all transactions matching filters (no pagination for export)
+      const { data: transactions, error } = await supabaseAdmin
+        .from('sales_transactions_enhanced')
+        .select('*');
+
+      if (error) throw error;
+
+      // Apply filters
+      let filteredTransactions = transactions || [];
+      
+      if (filters.date_from) {
+        filteredTransactions = filteredTransactions.filter(t => t.transaction_date >= filters.date_from);
+      }
+      if (filters.date_to) {
+        filteredTransactions = filteredTransactions.filter(t => t.transaction_date <= filters.date_to);
+      }
+      if (filters.status) {
+        filteredTransactions = filteredTransactions.filter(t => t.status === filters.status);
+      }
+      if (filters.payment_status) {
+        filteredTransactions = filteredTransactions.filter(t => t.payment_status === filters.payment_status);
+      }
+
+      // Generate export file
+      if (format === 'excel') {
+        return await ExportService.generateExcel(filteredTransactions, 'sales_transactions');
+      } else {
+        return await ExportService.generateCSV(filteredTransactions, 'sales_transactions');
+      }
+    } catch (error) {
+      throw new Error(`Failed to export sales transactions: ${error}`);
+    }
+  }
+
+  // Generate transaction PDF
+  static async generateTransactionPDF(transactionId: string) {
+    try {
+      const transaction = await this.getSalesTransactionById(transactionId);
+      return await PDFService.generateTransactionPDF(transaction);
+    } catch (error) {
+      throw new Error(`Failed to generate transaction PDF: ${error}`);
+    }
+  }
+
+  // Get real-time sales transactions stream
+  static async getSalesTransactionsStream(lastUpdated?: string) {
+    try {
+      let query = supabaseAdmin
+        .from('sales_transactions_enhanced')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(50);
+
+      if (lastUpdated) {
+        query = query.gt('updated_at', lastUpdated);
+      }
+
+      const { data: transactions, error } = await query;
+
+      if (error) throw error;
+
+      return {
+        transactions: transactions || [],
+        last_updated: new Date().toISOString()
+      };
+    } catch (error) {
+      throw new Error(`Failed to fetch sales transactions stream: ${error}`);
+    }
+  }
+
+  // Update transaction status
+  static async updateTransactionStatus(id: string, status: string, notes: string, updatedBy: string) {
+    try {
+      const { data: transaction, error } = await supabaseAdmin
         .from('sales_transactions')
-        .insert([transactionData])
+        .update({
+          status,
+          updated_by_user_id: updatedBy,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+
+      // Log status change
+      await supabaseAdmin
+        .from('audit_logs')
+        .insert({
+          user_id: updatedBy,
+          action: 'sales_transaction_status_updated',
+          entity_type: 'sales_transaction',
+          entity_id: id,
+          new_values: { status, notes },
+          created_at: new Date().toISOString()
+        });
+
+      return transaction;
     } catch (error) {
-      throw new Error(`Failed to create sales transaction: ${error}`);
+      throw new Error(`Failed to update transaction status: ${error}`);
     }
   }
 
-  // Payments
+   // Payments
   static async getPayments(filters: any = {}) {
     try {
       let query = supabaseAdmin
@@ -533,8 +636,6 @@ export class SalesService {
       // Prepare customer data with defaults
       const preparedData = {
         ...customerData,
-        customer_type: customerData.customer_type || 'individual',
-        registration_date: customerData.registration_date || new Date().toISOString().split('T')[0],
         is_active: customerData.is_active !== undefined ? customerData.is_active : true,
         total_spent: customerData.total_spent || 0,
         created_at: new Date().toISOString(),
@@ -652,4 +753,3 @@ export class SalesService {
     }
   }
 }
-

@@ -4,6 +4,42 @@ import { PasswordUtils } from '../utils/password';
 import { User, LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
 
 export class AuthService {
+  // Helper function to fetch permissions for given role IDs
+  private static async fetchPermissionsForRoles(roleIds: string[]): Promise<string[]> {
+    if (roleIds.length === 0) {
+      return [];
+    }
+
+    const { data: rolePermissions, error: permissionsError } = await supabaseAdmin
+      .from('role_permissions')
+      .select(`
+        permissions (
+          name
+        )
+      `)
+      .in('role_id', roleIds);
+
+    if (permissionsError) {
+      console.error('Error fetching role permissions:', permissionsError);
+      return [];
+    }
+
+    // Extract permission names from the joined data
+    type RolePermissionRecord = {
+      permissions: { name: string } | { name: string }[] | null;
+    };
+    
+    const typedRolePermissions = rolePermissions as RolePermissionRecord[];
+    
+    const permissions =
+      typedRolePermissions?.flatMap(rp =>
+        Array.isArray(rp.permissions) ? rp.permissions.map(p => p.name) : [rp.permissions?.name]
+      ).filter((name): name is string => Boolean(name)) ?? [];
+
+    // Remove duplicates
+    return [...new Set(permissions)];
+  }
+
   static async register(data: RegisterRequest): Promise<AuthResponse> {
     try {
       // Check if user already exists in public.users table
@@ -85,7 +121,48 @@ export class AuthService {
         };
       }
 
-      // Step 3: Generate JWT tokens
+      // Step 3: Fetch user roles (new users typically have no roles initially)
+      const { data: userRoles, error: rolesError } = await supabaseAdmin
+        .from('user_roles')
+        .select(`
+          role_id,
+          roles (
+            id,
+            name
+          )
+        `)
+        .eq('user_id', user.id);
+
+      // Extract role names and IDs from the joined data
+      type UserRoleRecord = {
+        role_id: string;
+        roles: { id: string; name: string } | { id: string; name: string }[] | null;
+      };
+      
+      const typedUserRoles = userRoles as UserRoleRecord[];
+      
+      const roles =
+        typedUserRoles?.flatMap(ur =>
+          Array.isArray(ur.roles) ? ur.roles.map(r => r.name) : [ur.roles?.name]
+        ).filter((name): name is string => Boolean(name)) ?? [];
+
+      const roleIds =
+        typedUserRoles?.flatMap(ur =>
+          Array.isArray(ur.roles) ? ur.roles.map(r => r.id) : [ur.roles?.id]
+        ).filter((id): id is string => Boolean(id)) ?? [];
+
+      // Fetch permissions for the user's roles
+      const permissions = await this.fetchPermissionsForRoles(roleIds);
+
+      // Add roles and permissions to user object
+      const userWithRoles = {
+        ...user,
+        roles,
+        role: roles.length === 1 ? roles[0] : undefined, // For backward compatibility
+        permissions,
+      };
+
+      // Step 4: Generate JWT tokens
       const accessToken = JWTUtils.generateAccessToken({
         userId: user.id,
         email: user.email,
@@ -102,7 +179,7 @@ export class AuthService {
         success: true,
         message: 'User registered successfully',
         data: {
-          user,
+          user: userWithRoles,
           access_token: accessToken,
           refresh_token: refreshToken,
         },
@@ -153,6 +230,55 @@ export class AuthService {
         };
       }
 
+      // Fetch user roles from user_roles and roles tables
+      const { data: userRoles, error: rolesError } = await supabaseAdmin
+        .from('user_roles')
+        .select(`
+          role_id,
+          roles (
+            id,
+            name
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        return {
+          success: false,
+          message: 'Failed to fetch user roles',
+        };
+      }
+
+      // Extract role names and IDs from the joined data
+      type UserRoleRecord = {
+        role_id: string;
+        roles: { id: string; name: string } | { id: string; name: string }[] | null;
+      };
+      
+      const typedUserRoles = userRoles as UserRoleRecord[];
+      
+      const roles =
+        typedUserRoles?.flatMap(ur =>
+          Array.isArray(ur.roles) ? ur.roles.map(r => r.name) : [ur.roles?.name]
+        ).filter((name): name is string => Boolean(name)) ?? [];
+
+      const roleIds =
+        typedUserRoles?.flatMap(ur =>
+          Array.isArray(ur.roles) ? ur.roles.map(r => r.id) : [ur.roles?.id]
+        ).filter((id): id is string => Boolean(id)) ?? [];
+
+      // Fetch permissions for the user's roles
+      const permissions = await this.fetchPermissionsForRoles(roleIds);
+
+      // Add roles and permissions to user object
+      const userWithRoles = {
+        ...user,
+        roles,
+        role: roles.length === 1 ? roles[0] : undefined, // For backward compatibility
+        permissions,
+      };
+
       // Update last login
       await supabaseAdmin
         .from('users')
@@ -176,7 +302,7 @@ export class AuthService {
         success: true,
         message: 'Login successful',
         data: {
-          user,
+          user: userWithRoles,
           access_token: accessToken,
           refresh_token: refreshToken,
         },
@@ -210,6 +336,55 @@ export class AuthService {
         };
       }
 
+      // Fetch user roles from user_roles and roles tables
+      const { data: userRoles, error: rolesError } = await supabaseAdmin
+        .from('user_roles')
+        .select(`
+          role_id,
+          roles (
+            id,
+            name
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        return {
+          success: false,
+          message: 'Failed to fetch user roles',
+        };
+      }
+
+      // Extract role names and IDs from the joined data
+      type UserRoleRecord = {
+        role_id: string;
+        roles: { id: string; name: string } | { id: string; name: string }[] | null;
+      };
+      
+      const typedUserRoles = userRoles as UserRoleRecord[];
+      
+      const roles =
+        typedUserRoles?.flatMap(ur =>
+          Array.isArray(ur.roles) ? ur.roles.map(r => r.name) : [ur.roles?.name]
+        ).filter((name): name is string => Boolean(name)) ?? [];
+
+      const roleIds =
+        typedUserRoles?.flatMap(ur =>
+          Array.isArray(ur.roles) ? ur.roles.map(r => r.id) : [ur.roles?.id]
+        ).filter((id): id is string => Boolean(id)) ?? [];
+
+      // Fetch permissions for the user's roles
+      const permissions = await this.fetchPermissionsForRoles(roleIds);
+
+      // Add roles and permissions to user object
+      const userWithRoles = {
+        ...user,
+        roles,
+        role: roles.length === 1 ? roles[0] : undefined, // For backward compatibility
+        permissions,
+      };
+
       // Generate new tokens
       const newAccessToken = JWTUtils.generateAccessToken({
         userId: user.id,
@@ -227,7 +402,7 @@ export class AuthService {
         success: true,
         message: 'Token refreshed successfully',
         data: {
-          user,
+          user: userWithRoles,
           access_token: newAccessToken,
           refresh_token: newRefreshToken,
         },

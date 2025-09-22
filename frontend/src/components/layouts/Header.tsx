@@ -1,11 +1,14 @@
 import React from 'react';
-import { Search, Bell, User, Settings, Menu } from 'lucide-react';
+import { Search, Bell, User, Settings, Menu, LogOut } from 'lucide-react';
+import { type UserProfile } from '../../lib/supabase';
 
 interface HeaderProps {
+  user: UserProfile;
+  onLogout: () => void;
   onMenuToggle?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogout, onMenuToggle }) => {
   return (
     <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 px-6 py-4 sticky top-0 z-30">
       <div className="flex items-center justify-between">
@@ -48,9 +51,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
               <User className="w-5 h-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-gray-800">Admin User</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-sm font-semibold text-gray-800">
+                {user.first_name} {user.last_name}
+              </p>
+              <p className="text-xs text-gray-500 capitalize">
+                {user.role || 'User'}
+              </p>
             </div>
+            <button
+              onClick={onLogout}
+              className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

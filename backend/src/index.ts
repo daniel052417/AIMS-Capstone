@@ -9,6 +9,7 @@ import { config } from './config/env';
 import rbacRoutes from './routes/rbac.routes';
 import usersRouter from './routes/activeUsers.routes';
 import staffRouter from './routes/staff.routes';
+import salesRouter from './routes/sales.routes';
 // Load environment variables
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/v1/rbac', rbacRoutes);
 app.use('/v1/users', usersRouter);
 app.use('/v1/staff', staffRouter);
+app.use('/v1/sales', salesRouter);
 // Security middleware
 app.use(helmet());
 

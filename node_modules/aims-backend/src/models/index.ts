@@ -6,6 +6,21 @@ export interface BaseModel {
   created_at: string;
   updated_at: string;
 }
+// models/customer.ts
+export interface Customer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;     // 👈 add this
+  is_active?: boolean;
+  total_spent?: number;
+  last_purchase_date?: string;
+  loyalty_points?: number;
+  loyalty_tier?: string;
+  total_lifetime_spent?: number;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface UserModel extends BaseModel {
   email: string;

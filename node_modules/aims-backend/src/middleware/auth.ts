@@ -10,7 +10,19 @@ export interface AuthenticatedRequest extends Request {
     branchId?: string;
   };
 }
+export function requirePermission(permissions: string[]) {
+  return (req: any, res: Response, next: NextFunction) => {
+    // adjust to your req.user structure
+    const userPermissions: string[] = req.user?.permissions || [];
 
+    const hasAll = permissions.every(p => userPermissions.includes(p));
+    if (!hasAll) {
+      return res.status(403).json({ success: false, message: 'Forbidden: missing permission(s)' });
+    }
+
+    next();
+  };
+}
 export const requireRole = (allowedRoles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     // Ensure user is authenticated first

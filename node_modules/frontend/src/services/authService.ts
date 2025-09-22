@@ -12,9 +12,13 @@ export interface LoginResponse {
     first_name: string;
     last_name: string;
     role: string;
+    is_active: boolean;
+    phone?: string;
+    created_at: string;
+    updated_at: string;
   };
-  token: string;
-  refreshToken: string;
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface UserProfile {

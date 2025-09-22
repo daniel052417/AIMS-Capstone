@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticateToken, requireRole, requirePermission } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
-import * as salesController from '../controllers/sales.controller';
+import { SalesController } from '../controllers/sales.controller';
 
 const router = Router();
 
@@ -11,92 +11,142 @@ router.use(authenticateToken);
 // Sales Orders Routes
 router.get('/orders', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.getSalesOrders),
+  asyncHandler(SalesController.getSalesOrders),
 );
 
 router.get('/orders/:id', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.getSalesOrderById),
+  asyncHandler(SalesController.getSalesOrderById),
 );
 
 router.post('/orders', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.createSalesOrder),
+  asyncHandler(SalesController.createSalesOrder),
 );
 
 router.put('/orders/:id', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.updateSalesOrder),
+  asyncHandler(SalesController.updateSalesOrder),
 );
 
 router.put('/orders/:id/status', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.updateOrderStatus),
+  asyncHandler(SalesController.updateOrderStatus),
 );
 
 // Sales Transactions Routes
 router.get('/transactions', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.getSalesTransactions),
+  requirePermission(['sales.read']),
+  asyncHandler(SalesController.getSalesTransactions)
 );
 
-router.post('/transactions', 
+router.get('/transactions/:id', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.createSalesTransaction),
+  requirePermission(['sales.read']),
+  asyncHandler(SalesController.getSalesTransactionById)
+);
+
+router.put('/transactions/:id', 
+  requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
+  requirePermission(['sales.update']),
+  asyncHandler(SalesController.updateSalesTransaction)
+);
+
+router.delete('/transactions/:id', 
+  requireRole(['super_admin', 'sales_admin']), 
+  requirePermission(['sales.delete']),
+  asyncHandler(SalesController.deleteSalesTransaction)
+);
+// Real-time Updates
+router.get('/transactions/stream', 
+  requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
+  requirePermission(['sales.read']),
+  asyncHandler(SalesController.getSalesTransactionsStream)
+);
+
+// Status Management
+router.put('/transactions/:id/status', 
+  requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
+  requirePermission(['sales.update']),
+  asyncHandler(SalesController.updateTransactionStatus)
 );
 
 // Payment Routes
 router.get('/payments', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.getPayments),
+  asyncHandler(SalesController.getPayments),
 );
 
 router.post('/payments', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.createPayment),
+  asyncHandler(SalesController.createPayment),
 );
 
 // Customer Management Routes
 router.get('/customers', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.getCustomers),
+  asyncHandler(SalesController.getCustomers),
 );
 
 router.get('/customers/:id', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
-  asyncHandler(salesController.getCustomerById),
+  asyncHandler(SalesController.getCustomerById),
 );
 
 router.post('/customers', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.createCustomer),
+  asyncHandler(SalesController.createCustomer),
 );
 
 router.put('/customers/:id', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.updateCustomer),
+  asyncHandler(SalesController.updateCustomer),
+);
+// Bulk Operations
+router.put('/transactions/bulk/status', 
+  requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
+  requirePermission(['sales.update']),
+  asyncHandler(SalesController.bulkUpdateTransactionStatus)
+);
+
+router.delete('/transactions/bulk', 
+  requireRole(['super_admin', 'sales_admin']), 
+  requirePermission(['sales.delete']),
+  asyncHandler(SalesController.bulkDeleteTransactions)
 );
 
 // Reports Routes
 router.get('/reports/sales', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.getSalesReport),
+  asyncHandler(SalesController.getSalesReport),
 );
 
 router.get('/reports/top-products', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.getTopSellingProducts),
+  asyncHandler(SalesController.getTopSellingProducts),
 );
 
 router.get('/reports/customer-sales', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.getCustomerSalesReport),
+  asyncHandler(SalesController.getCustomerSalesReport),
+);
+router.get('/transactions/export', 
+  requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
+  requirePermission(['sales.export']),
+  asyncHandler(SalesController.exportSalesTransactions)
+);
+
+router.get('/transactions/print/:id', 
+  requireRole(['super_admin', 'sales_admin', 'sales_staff', 'pos_cashier']), 
+  requirePermission(['sales.read']),
+  asyncHandler(SalesController.printSalesTransaction)
 );
 
 // Dashboard Routes
 router.get('/dashboard', 
   requireRole(['super_admin', 'sales_admin', 'sales_staff']), 
-  asyncHandler(salesController.getSalesDashboard),
+  asyncHandler(SalesController.getSalesDashboard),
 );
 
 export default router;

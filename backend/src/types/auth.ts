@@ -9,6 +9,9 @@ export interface User {
     created_at: string;
     updated_at: string;
     last_login?: string;
+    roles?: string[];
+    role?: string; // For backward compatibility - will be the first role if only one exists
+    permissions?: string[]; // All permissions assigned to user's roles
   }
   
 export interface LoginRequest {

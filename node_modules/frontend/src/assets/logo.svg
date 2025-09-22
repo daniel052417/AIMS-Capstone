@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="12" fill="#10B981"/>
+  <path d="M32 16C23.163 16 16 23.163 16 32C16 40.837 23.163 48 32 48C40.837 48 48 40.837 48 32C48 23.163 40.837 16 32 16ZM32 44C25.373 44 20 38.627 20 32C20 25.373 25.373 20 32 20C38.627 20 44 25.373 44 32C44 38.627 38.627 44 32 44Z" fill="white"/>
+  <path d="M28 24H36V28H28V24Z" fill="white"/>
+  <path d="M28 30H36V34H28V30Z" fill="white"/>
+  <path d="M28 36H32V40H28V36Z" fill="white"/>
+  <text x="32" y="52" text-anchor="middle" fill="#10B981" font-family="Arial, sans-serif" font-size="8" font-weight="bold">AGRIVET</text>
+</svg>
+
+
+
+
+
