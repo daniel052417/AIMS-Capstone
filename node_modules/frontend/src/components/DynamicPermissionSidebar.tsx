@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, BarChart3, Package, TrendingUp, AlertTriangle, ShoppingCart, 
-  Users, FileText, Settings, Bell, Shield, MessageSquare,
+  Users, FileText, Settings, Bell, Shield,
   Megaphone, Calendar, DollarSign,
   Archive, Warehouse, ChevronDown,
   Menu, X, LogOut, UserCheck,
-  Clock, Key, Building, Truck, CreditCard, UserPlus,
-  Grid3X3
+  Clock, Key,  UserPlus,
+  Grid3X3,  BookOpen,  Download
 } from 'lucide-react';
 import { usePermissions } from '../context/PermissionContext';
 import { type UserProfile } from '../lib/supabase';
@@ -34,231 +34,359 @@ interface MenuItem {
 const DynamicPermissionSidebar: React.FC<SidebarProps> = ({ user, onLogout, className = '' }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasPermission, hasRole, canAccess } = usePermissions();
+  const { hasPermission, hasRole } = usePermissions();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['Default']);
 
   // Updated menu items based on your actual permissions from the database
-  const menuItems: MenuItem[] = [
-    { 
-      id: 'dashboard', 
-      label: 'Dashboard', 
-      icon: Home, 
-      category: 'Default',
-      path: '/dashboard',
-      // No specific permission required for dashboard - everyone can see it
-    },
-    
-    { 
-      id: 'inventory-management', 
-      label: 'Inventory Management', 
-      icon: Warehouse, 
-      category: 'Inventory',
-      requiredPermissions: ['inventory.read'],
-      children: [
-        { 
-          id: 'inventory-overview', 
-          label: 'Inventory Overview', 
-          icon: Package, 
-          category: 'Inventory',
-          path: '/inventory',
-          requiredPermissions: ['inventory.read']
-        },
-        { 
-          id: 'products', 
-          label: 'Products', 
-          icon: Archive, 
-          category: 'Inventory',
-          path: '/inventory/products',
-          requiredPermissions: ['products.read']
-        },
-        { 
-          id: 'categories', 
-          label: 'Categories', 
-          icon: Grid3X3, 
-          category: 'Inventory',
-          path: '/inventory/categories',
-          requiredPermissions: ['products.read']
-        },
-        { 
-          id: 'low-stock', 
-          label: 'Low Stock Alerts', 
-          icon: AlertTriangle, 
-          category: 'Inventory',
-          path: '/inventory/low-stock',
-          requiredPermissions: ['inventory.read']
-        },
-        // Remove suppliers and purchase-orders for now
-      ]
-    },
-    
-    // Sales & POS
-    { 
-      id: 'sales-pos', 
-      label: 'Sales & POS', 
-      icon: ShoppingCart, 
-      category: 'Sales',
-      requiredPermissions: ['sales.read'],
-      children: [
-        { 
-          id: 'sales-dashboard', 
-          label: 'Sales Dashboard', 
-          icon: TrendingUp, 
-          category: 'Sales',
-          path: '/sales',
-          requiredPermissions: ['sales.read']
-        },
-        { 
-          id: 'orders', 
-          label: 'Orders', 
-          icon: ShoppingCart, 
-          category: 'Sales',
-          path: '/sales/orders',
-          requiredPermissions: ['orders.read']
-        },
-        { 
-          id: 'customers', 
-          label: 'Customers', 
-          icon: Users, 
-          category: 'Sales',
-          path: '/sales/customers',
-          requiredPermissions: ['customers.read']
-        },
-        { 
-          id: 'payments', 
-          label: 'Payments', 
-          icon: CreditCard, 
-          category: 'Sales',
-          path: '/sales/payments',
-          requiredPermissions: ['payments.read']
-        },
-      ]
-    },
-    
-    // Administration (User & Role Management)
-    { 
-      id: 'administration',
-      label: 'Administration',
-      icon: Shield, 
-      category: 'Admin',
-      requiredPermissions: ['users.read', 'roles.read'], // Show if user has any admin permissions
-      children: [
-        { 
-          id: 'user-management', 
-          label: 'User Management', 
-          icon: Users, 
-          category: 'Admin',
-          path: '/admin/users',
-          requiredPermissions: ['users.read']
-        },
-        { 
-          id: 'roles-permissions', 
-          label: 'Roles & Permissions', 
-          icon: Shield, 
-          category: 'Admin',
-          path: '/admin/roles',
-          requiredPermissions: ['roles.read']
-        },
-        { 
-          id: 'user-permissions', 
-          label: 'User Permissions', 
-          icon: Key, 
-          category: 'Admin',
-          path: '/admin/user-permissions',
-          requiredPermissions: ['users.read', 'roles.read'] // Need both to manage user permissions
-        },
-      ] 
-    },
+ // Replace your menuItems array with this properly categorized version:
 
-    // Branches (if applicable)
-    { 
-      id: 'branches', 
-      label: 'Branch Management', 
-      icon: Building, 
-      category: 'Operations',
-      path: '/branches',
-      requiredPermissions: ['branches.read']
-    },
+const menuItems: MenuItem[] = [
+  // Dashboard - Standalone
+  { 
+    id: 'dashboard', 
+    label: 'Dashboard', 
+    icon: Home, 
+    category: 'Dashboard',
+    path: '/dashboard',
+  },
+  
+  // Inventory Management
+  { 
+    id: 'inventory-management', 
+    label: 'Inventory Management', 
+    icon: Warehouse, 
+    category: 'Inventory Management',
+    requiredPermissions: ['inventory.read'],
+    children: [
+      { 
+        id: 'inventory-overview', 
+        label: 'Inventory Overview', 
+        icon: Package, 
+        category: 'Inventory Management',
+        path: '/inventory',
+        requiredPermissions: ['inventory.read']
+      },
+      { 
+        id: 'inventory-summary', 
+        label: 'Inventory Summary', 
+        icon: Archive, 
+        category: 'Inventory Management',
+        path: '/inventory/summary',
+        requiredPermissions: ['products.read']
+      },
+      { 
+        id: 'categories', 
+        label: 'Categories', 
+        icon: Grid3X3, 
+        category: 'Inventory Management',
+        path: '/inventory/categories',
+        requiredPermissions: ['products.read']
+      },
+      { 
+        id: 'low-stock', 
+        label: 'Low Stock Alerts', 
+        icon: AlertTriangle, 
+        category: 'Inventory Management',
+        path: '/inventory/low-stock',
+        requiredPermissions: ['inventory.read']
+      },
+    ]
+  },
+
+  // Sales & POS
+  { 
+    id: 'sales-pos', 
+    label: 'Sales & POS', 
+    icon: ShoppingCart, 
+    category: 'Sales & POS',
+    requiredPermissions: ['sales.read', 'pos.access'],
+    children: [
+      // Sales Section
+      { 
+        id: 'sales-dashboard', 
+        label: 'Sales Dashboard', 
+        icon: TrendingUp, 
+        category: 'Sales & POS',
+        path: '/sales',
+        requiredPermissions: ['sales.read']
+      },
+      { 
+        id: 'all-sales-records', 
+        label: 'All Sales Records', 
+        icon: FileText, 
+        category: 'Sales & POS',
+        path: '/sales/records',
+        requiredPermissions: ['sales.read']
+      },
+      { 
+        id: 'product-sales', 
+        label: 'Product Sales Report', 
+        icon: BarChart3, 
+        category: 'Sales & POS',
+        path: '/sales/product-report',
+        requiredPermissions: ['sales.read']
+      },
+      { 
+        id: 'sales-value', 
+        label: 'Sales Value', 
+        icon: DollarSign, 
+        category: 'Sales & POS',
+        path: '/sales/value',
+        requiredPermissions: ['sales.read']
+      },
+    ]
+  },
+
+  // Staff & User Management
+  { 
+    id: 'staff-user-management',
+    label: 'Staff & User Management',
+    icon: Shield, 
+    category: 'Staff & User Management',
+    requiredPermissions: ['users.read', 'roles.read', 'admin.overview'],
+    children: [
+      
+      { 
+        id: 'user-management', 
+        label: 'User Management', 
+        icon: Users, 
+        category: 'Staff & User Management',
+        path: '/admin/users',
+        requiredPermissions: ['users.read']
+      },
+      { 
+        id: 'roles-permissions', 
+        label: 'Roles & Permissions', 
+        icon: Shield, 
+        category: 'Staff & User Management',
+        path: '/admin/roles',
+        requiredPermissions: ['roles.read']
+      },
+      { 
+        id: 'user-permissions', 
+        label: 'User Permissions', 
+        icon: Key, 
+        category: 'Staff & User Management',
+        path: '/admin/user-permissions',
+        requiredPermissions: ['users.read', 'roles.read']
+      },
+      { 
+        id: 'active-users', 
+        label: 'Active Users', 
+        icon: UserCheck, 
+        category: 'Staff & User Management',
+        path: '/admin/active-users',
+        requiredPermissions: ['admin.active_users']
+      },
+      { 
+        id: 'user-activity', 
+        label: 'User Activity', 
+        icon: Clock, 
+        category: 'Staff & User Management',
+        path: '/admin/user-activity',
+        requiredPermissions: ['admin.user_activity']
+      },
+    ] 
+  },
+
+  // HR Management
+  { 
+    id: 'hr-management',
+    label: 'HR Management',
+    icon: Users, 
+    category: 'HR Management',
+    requiredPermissions: ['hr.staff_read'],
+    children: [
+      { 
+        id: 'hr-dashboard', 
+        label: 'HR Dashboard', 
+        icon: Home, 
+        category: 'HR Management',
+        path: '/hr',
+        requiredPermissions: ['hr.staff_read']
+      },
+      { 
+        id: 'add-staff', 
+        label: 'Add Staff', 
+        icon: UserPlus, 
+        category: 'HR Management',
+        path: '/hr/add-staff',
+        requiredPermissions: ['hr.staff_create']
+      },
+      { 
+        id: 'attendance-dashboard', 
+        label: 'Attendance Dashboard', 
+        icon: Clock, 
+        category: 'HR Management',
+        path: '/hr/attendance',
+        requiredPermissions: ['hr.attendance_read']
+      },
+      { 
+        id: 'attendance-timesheet', 
+        label: 'Attendance Timesheet', 
+        icon: FileText, 
+        category: 'HR Management',
+        path: '/hr/timesheet',
+        requiredPermissions: ['hr.timesheet_manage']
+      },
+      { 
+        id: 'hr-analytics', 
+        label: 'HR Analytics', 
+        icon: BarChart3, 
+        category: 'HR Management',
+        path: '/hr/analytics',
+        requiredPermissions: ['hr.analytics']
+      },
+      { 
+        id: 'leave-management', 
+        label: 'Leave Management', 
+        icon: Calendar, 
+        category: 'HR Management',
+        path: '/hr/leave-management',
+        requiredPermissions: ['hr.leave_requests']
+      },
+      { 
+        id: 'payroll', 
+        label: 'Payroll & Compensation', 
+        icon: DollarSign, 
+        category: 'HR Management',
+        path: '/hr/payroll',
+        requiredPermissions: ['hr.payroll_read']
+      },
+      { 
+        id: 'performance', 
+        label: 'Performance Management', 
+        icon: TrendingUp, 
+        category: 'HR Management',
+        path: '/hr/performance',
+        requiredPermissions: ['hr.performance_read']
+      },
+      { 
+        id: 'training', 
+        label: 'Training Management', 
+        icon: BookOpen, 
+        category: 'HR Management',
+        path: '/hr/training',
+        requiredPermissions: ['hr.training_read']
+      },
+    ] 
+  },
+
+  // Marketing Management
+  { 
+    id: 'marketing-management', 
+    label: 'Marketing Management', 
+    icon: Megaphone, 
+    category: 'Marketing Management',
+    requiredPermissions: ['campaigns.read'],
+    children: [
+      { 
+        id: 'marketing-dashboard', 
+        label: 'Marketing Dashboard', 
+        icon: BarChart3, 
+        category: 'Marketing Management',
+        path: '/marketing',
+        requiredPermissions: ['campaigns.read']
+      },
+      { 
+        id: 'campaign-management', 
+        label: 'Campaign Management', 
+        icon: Megaphone, 
+        category: 'Marketing Management',
+        path: '/marketing/campaigns',
+        requiredPermissions: ['campaigns.read']
+      },
+      { 
+        id: 'campaign-analytics', 
+        label: 'Campaign Analytics', 
+        icon: BarChart3, 
+        category: 'Marketing Management',
+        path: '/marketing/analytics',
+        requiredPermissions: ['campaigns.analytics']
+      },
+      { 
+        id: 'client-notifications', 
+        label: 'Client Notifications', 
+        icon: Bell, 
+        category: 'Marketing Management',
+        path: '/marketing/notifications',
+        requiredPermissions: ['notifications.send']
+      },
+      { 
+        id: 'template-management', 
+        label: 'Template Management', 
+        icon: FileText, 
+        category: 'Marketing Management',
+        path: '/marketing/templates',
+        requiredPermissions: ['templates.read']
+      },
+    ]
+  },
     
-    // Marketing & Campaigns
-    { 
-      id: 'marketing', 
-      label: 'Marketing', 
-      icon: Megaphone, 
-      category: 'Marketing',
-      requiredPermissions: ['campaigns.read'],
-      children: [
-        { 
-          id: 'marketing-dashboard', 
-          label: 'Marketing Dashboard', 
-          icon: BarChart3, 
-          category: 'Marketing',
-          path: '/marketing',
-          requiredPermissions: ['campaigns.read']
-        },
-        { 
-          id: 'campaigns', 
-          label: 'Campaign Management', 
-          icon: Megaphone, 
-          category: 'Marketing',
-          path: '/marketing/campaigns',
-          requiredPermissions: ['campaigns.read']
-        },
-      ]
-    },
-    
-    // Reports & Analytics
-    { 
-      id: 'reports', 
-      label: 'Reports & Analytics', 
-      icon: FileText, 
-      category: 'Reports',
-      children: [
-        { 
-          id: 'reports-overview', 
-          label: 'Reports Overview', 
-          icon: FileText, 
-          category: 'Reports',
-          path: '/reports',
-          requiredPermissions: ['reports.sales', 'reports.inventory', 'reports.financial'] // Any report permission
-        },
-        { 
-          id: 'sales-reports', 
-          label: 'Sales Reports', 
-          icon: TrendingUp, 
-          category: 'Reports',
-          path: '/reports/sales',
-          requiredPermissions: ['reports.sales']
-        },
-        { 
-          id: 'inventory-reports', 
-          label: 'Inventory Reports', 
-          icon: Package, 
-          category: 'Reports',
-          path: '/reports/inventory',
-          requiredPermissions: ['reports.inventory']
-        },
-        { 
-          id: 'financial-reports', 
-          label: 'Financial Reports', 
-          icon: DollarSign, 
-          category: 'Reports',
-          path: '/reports/financial',
-          requiredPermissions: ['reports.financial']
-        },
-      ]
-    },
-    
-    // System Settings
-    { 
-      id: 'settings', 
-      label: 'Settings', 
-      icon: Settings, 
-      category: 'System',
-      path: '/settings',
-      requiredPermissions: ['settings.read']
-    },
-  ];
+  // Reports & Analytics
+  { 
+    id: 'reports-analytics', 
+    label: 'Reports & Analytics', 
+    icon: FileText, 
+    category: 'Reports & Analytics',
+    children: [
+      { 
+        id: 'reports-dashboard', 
+        label: 'Reports Dashboard', 
+        icon: Home, 
+        category: 'Reports & Analytics',
+        path: '/reports',
+        requiredPermissions: ['reports.read']
+      },
+      { 
+        id: 'reports-analytics-detail', 
+        label: 'Reports Analytics', 
+        icon: BarChart3, 
+        category: 'Reports & Analytics',
+        path: '/reports/analytics',
+        requiredPermissions: ['reports.analytics']
+      },
+      { 
+        id: 'event-center', 
+        label: 'Event Center', 
+        icon: Calendar, 
+        category: 'Reports & Analytics',
+        path: '/reports/events',
+        requiredPermissions: ['reports.events']
+      },
+      { 
+        id: 'exports', 
+        label: 'Export Reports', 
+        icon: Download, 
+        category: 'Reports & Analytics',
+        path: '/reports/exports',
+        requiredPermissions: ['reports.export']
+      },
+      { 
+        id: 'claims', 
+        label: 'Claims Management', 
+        icon: FileText, 
+        category: 'Reports & Analytics',
+        path: '/claims',
+        requiredPermissions: ['claims.read']
+      },
+    ]
+  },
+
+  // Settings - Standalone
+  { 
+    id: 'settings', 
+    label: 'Settings', 
+    icon: Settings, 
+    category: 'Settings',
+    path: '/settings',
+    requiredPermissions: ['settings.read']
+  },
+];
+
+// Don't forget to add the missing icons at the top:
+// import { Search, BookOpen, Eye, Download } from 'lucide-react';
 
   // Filter menu items based on permissions - improved logic
   const filterMenuItems = (items: MenuItem[]): MenuItem[] => {
@@ -300,6 +428,40 @@ const DynamicPermissionSidebar: React.FC<SidebarProps> = ({ user, onLogout, clas
   };
 
   const visibleMenuItems = filterMenuItems([...menuItems]);
+
+  // Fallback: If no items are visible, show at least the dashboard
+  const finalVisibleMenuItems = visibleMenuItems.length > 0 ? visibleMenuItems : [
+    { 
+      id: 'dashboard', 
+      label: 'Dashboard', 
+      icon: Home, 
+      category: 'Dashboard',
+      path: '/dashboard',
+    }
+  ];
+
+  // Group items by category, only including categories that have visible items
+  const categories = [
+    { name: 'Dashboard', items: finalVisibleMenuItems.filter(item => item.category === 'Dashboard') },
+    { name: 'Inventory Management', items: finalVisibleMenuItems.filter(item => item.category === 'Inventory Management') },
+    { name: 'Sales & POS', items: finalVisibleMenuItems.filter(item => item.category === 'Sales & POS') },
+    { name: 'Staff & User Management', items: finalVisibleMenuItems.filter(item => item.category === 'Staff & User Management') },
+    { name: 'HR Management', items: finalVisibleMenuItems.filter(item => item.category === 'HR Management') },
+    { name: 'Marketing Management', items: finalVisibleMenuItems.filter(item => item.category === 'Marketing Management') },
+    { name: 'Reports & Analytics', items: finalVisibleMenuItems.filter(item => item.category === 'Reports & Analytics') },
+    { name: 'Settings', items: finalVisibleMenuItems.filter(item => item.category === 'Settings') },
+  ].filter(category => category.items.length > 0); // Only show categories with items
+
+  // Debug logging to help identify issues
+  console.log('=== SIDEBAR DEBUG ===');
+  console.log('User:', user);
+  console.log('User permissions:', user?.permissions);
+  console.log('User roles:', user?.roles);
+  console.log('Total menu items:', menuItems.length);
+  console.log('Visible menu items:', visibleMenuItems.length);
+  console.log('Final visible items:', finalVisibleMenuItems.length);
+  console.log('Categories:', categories);
+  console.log('==================');
 
   const toggleCategory = (category: string) => {
     if (isCollapsed) return;
@@ -383,18 +545,6 @@ const DynamicPermissionSidebar: React.FC<SidebarProps> = ({ user, onLogout, clas
     );
   };
 
-  // Group items by category, only including categories that have visible items
-  const categories = [
-    { name: 'Default', items: visibleMenuItems.filter(item => item.category === 'Default') },
-    { name: 'Inventory', items: visibleMenuItems.filter(item => item.category === 'Inventory') },
-    { name: 'Sales', items: visibleMenuItems.filter(item => item.category === 'Sales') },
-    { name: 'Operations', items: visibleMenuItems.filter(item => item.category === 'Operations') },
-    { name: 'Admin', items: visibleMenuItems.filter(item => item.category === 'Admin') },
-    { name: 'Marketing', items: visibleMenuItems.filter(item => item.category === 'Marketing') },
-    { name: 'Reports', items: visibleMenuItems.filter(item => item.category === 'Reports') },
-    { name: 'System', items: visibleMenuItems.filter(item => item.category === 'System') },
-  ].filter(category => category.items.length > 0); // Only show categories with items
-
   return (
     <>
       {/* Mobile Overlay */}
@@ -441,20 +591,28 @@ const DynamicPermissionSidebar: React.FC<SidebarProps> = ({ user, onLogout, clas
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 space-y-1">
-          {categories.map(category => (
-            <div key={category.name}>
-              {!isCollapsed && category.items.length > 0 && (
-                <div className="px-6 py-2 mb-2">
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    {category.name}
-                  </h3>
+          {categories.length > 0 ? (
+            categories.map(category => (
+              <div key={category.name}>
+                {!isCollapsed && category.items.length > 0 && (
+                  <div className="px-6 py-2 mb-2">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {category.name}
+                    </h3>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {category.items.map(item => renderMenuItem(item))}
                 </div>
-              )}
-              <div className="space-y-1">
-                {category.items.map(item => renderMenuItem(item))}
               </div>
+            ))
+          ) : (
+            // Fallback if no categories are found
+            <div className="px-6 py-4 text-center text-gray-500">
+              <p className="text-sm">No menu items available</p>
+              <p className="text-xs mt-1">Check your permissions</p>
             </div>
-          ))}
+          )}
         </nav>
 
         {/* Footer */}

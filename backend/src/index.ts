@@ -7,36 +7,41 @@ import { errorHandler } from './middleware/errorHandler';
 import routes from './routes';
 import { config } from './config/env';
 import rbacRoutes from './routes/rbac.routes';
-import usersRouter from './routes/activeUsers.routes';
+import active_usersRouter from './routes/activeUsers.routes';
 import staffRouter from './routes/staff.routes';
 import salesRouter from './routes/sales.routes';
+import usersRouter from './routes/users.routes';
+
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = config.PORT;
-app.use(express.json());
-app.use('/v1/rbac', rbacRoutes);
-app.use('/v1/users', usersRouter);
-app.use('/v1/staff', staffRouter);
-app.use('/v1/sales', salesRouter);
-// Security middleware
-app.use(helmet());
 
-// CORS configuration
+// CORS configuration (moved up)
 app.use(cors({
-  origin: config.FRONTEND_URL,
+  origin: config.FRONTEND_URL, // 'http://localhost:5173'
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
-
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Security middleware
+app.use(helmet());
+
 // Logging middleware
 app.use(morgan('combined'));
+
+// Mount routes (after middleware)
+app.use('/v1/rbac', rbacRoutes);
+app.use('/v1/active_users', active_usersRouter);
+app.use('/v1/staff', staffRouter);
+app.use('/v1/sales', salesRouter);
+app.use('/v1/users', usersRouter);
+app.use('/', routes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -74,9 +79,6 @@ app.get('/v1', (req, res) => {
   });
 });
 
-// API routes
-app.use('/', routes);
-
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
@@ -96,7 +98,5 @@ app.listen(PORT, () => {
   console.log(`🌍 Environment: ${config.NODE_ENV}`);
   console.log(`🔗 Frontend URL: ${config.FRONTEND_URL}`);
 });
-
-
 
 export default app;

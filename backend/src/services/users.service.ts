@@ -63,9 +63,9 @@ export class UsersService {
       .from('users')
       .select(`
         *,
-        user_roles!inner(
+        user_roles(
           role_id,
-          roles!inner(
+          roles(
             id,
             name,
             description
@@ -105,8 +105,19 @@ export class UsersService {
 
     const totalPages = Math.ceil((totalCount || 0) / limit);
 
+    // Transform the data to match the expected format
+    const transformedUsers = (users || []).map(user => ({
+      ...user,
+      roles: user.user_roles?.map((ur: any) => ({
+        id: ur.roles?.id,
+        name: ur.roles?.name,
+        description: ur.roles?.description
+      })).filter(Boolean) || [],
+      permissions: [] // Will be populated separately if needed
+    }));
+
     return {
-      users: users || [],
+      users: transformedUsers,
       pagination: {
         page,
         limit,

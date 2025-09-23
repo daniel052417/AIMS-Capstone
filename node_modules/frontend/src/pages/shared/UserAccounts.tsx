@@ -35,7 +35,7 @@ const UserAccounts: React.FC = () => {
   useEffect(() => {
     loadUsers();
     loadStats();
-  }, [searchTerm, selectedRole, selectedStatus, pagination.page]);
+  }, [searchTerm, selectedRole, selectedStatus, pagination?.page]);
 
   const loadUsers = async () => {
     try {
@@ -44,12 +44,17 @@ const UserAccounts: React.FC = () => {
         search: searchTerm,
         role: selectedRole === 'all' ? '' : selectedRole,
         status: selectedStatus === 'all' ? '' : selectedStatus,
-        page: pagination.page,
-        limit: pagination.limit
+        page: pagination?.page || 1,
+        limit: pagination?.limit || 10
       });
       
-      setUsers(response.users);
-      setPagination(response.pagination);
+      setUsers(response?.users || []);
+      setPagination(response?.pagination || {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+      });
     } catch (error) {
       console.error('Failed to load users:', error);
     } finally {

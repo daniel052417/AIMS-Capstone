@@ -5,42 +5,51 @@ import { requirePermission } from '../middleware/rbac';
 
 const router = Router();
 
-// Apply authentication to all routes
-router.use(authenticateToken);
+// Skip authentication for OPTIONS requests
+router.options('*', (req, res) => {
+  res.sendStatus(200); // Handled by cors middleware
+});
 
+// Apply authentication to all non-OPTIONS routes
+router.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+  return authenticateToken(req, res, next);
+});
 // User management routes
 router.get('/', 
-  requirePermission('user.read'),
+  requirePermission('users.read'),
   UsersController.getUsers
 );
 
 router.get('/stats',
-  requirePermission('user.read'),
+  requirePermission('users.read'),
   UsersController.getUserStats
 );
 
 router.get('/:id',
-  requirePermission('user.read'),
+  requirePermission('users.read'),
   UsersController.getUserById
 );
 
 router.post('/',
-  requirePermission('user.create'),
+  requirePermission('users.create'),
   UsersController.createUser
 );
 
 router.put('/:id',
-  requirePermission('user.update'),
+  requirePermission('users.update'),
   UsersController.updateUser
 );
 
 router.patch('/:id/activate',
-  requirePermission('user.update'),
+  requirePermission('users.update'),
   UsersController.activateUser
 );
 
 router.patch('/:id/deactivate',
-  requirePermission('user.update'),
+  requirePermission('users.update'),
   UsersController.deactivateUser
 );
 

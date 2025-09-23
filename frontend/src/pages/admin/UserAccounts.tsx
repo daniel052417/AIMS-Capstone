@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 // value imports (icons)
-import { Search, Filter, Plus, Edit, Trash2, Eye, User as UserIcon, Phone, Shield } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Trash2, Eye, User as UserIcon, Phone, Shield, X, Mail, Lock } from 'lucide-react';
 
 // service (value) + types
 import { UserService } from '../../services/userService';
-import type { User, UserStats } from '../../services/userService';
+import type { User } from '../../services/userService';
 
 // Dynamic components
 import { Can } from '../../components/Can';
@@ -12,8 +12,6 @@ import { FallbackUI, TableSkeleton } from '../../components/FallbackUI';
 
 const UserAccounts: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -24,40 +22,155 @@ const UserAccounts: React.FC = () => {
     totalPages: 0
   });
 
+  // Modal state
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    role: 'user',
+    status: 'active'
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   // Static data for demonstration
-  // Load users and stats
+  // Load users
   useEffect(() => {
     loadUsers();
-    loadStats();
-  }, [searchTerm, selectedRole, selectedStatus, pagination.page]);
+  }, [searchTerm, selectedRole, selectedStatus, pagination?.page]);
+
 
   const loadUsers = async () => {
     try {
-      setLoading(true);
       const response = await UserService.getUsers({
         search: searchTerm,
         role: selectedRole === 'all' ? '' : selectedRole,
         status: selectedStatus === 'all' ? '' : selectedStatus,
-        page: pagination.page,
-        limit: pagination.limit
+        page: pagination?.page || 1,
+        limit: pagination?.limit || 10
       });
       
-      setUsers(response.users);
-      setPagination(response.pagination);
+      setUsers(response?.users || []);
+      setPagination(response?.pagination || {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+      });
     } catch (error) {
       console.error('Failed to load users:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const loadStats = async () => {
-    try {
-      const statsData = await UserService.getUserStats();
-      setStats(statsData);
-    } catch (error) {
-      console.error('Failed to load stats:', error);
+  // Form validation
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.first_name.trim()) {
+      errors.first_name = 'First name is required';
     }
+
+    if (!formData.last_name.trim()) {
+      errors.last_name = 'Last name is required';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email is invalid';
+    }
+
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle form submission
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await UserService.createUser({
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        status: formData.status,
+        roles: [{ id: '1', name: formData.role }]
+      } as any);
+
+      // Reset form and close modal
+      setFormData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+        role: 'user',
+        status: 'active'
+      });
+      setFormErrors({});
+      setIsAddUserModalOpen(false);
+      
+      // Refresh users list
+      loadUsers();
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      setFormErrors({ submit: 'Failed to create user. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Reset form when modal closes
+  const handleCloseModal = () => {
+    setIsAddUserModalOpen(false);
+    setFormData({
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+      role: 'user',
+      status: 'active'
+    });
+    setFormErrors({});
+  };
+
+  // Handle Add User button click
+  const handleAddUserClick = () => {
+    setIsAddUserModalOpen(true);
   };
 
   // const handleActivateUser = async (id: string) => {
@@ -115,10 +228,11 @@ const UserAccounts: React.FC = () => {
     const matchesSearch = user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.roles.some(role => role.role_name === selectedRole);
+    const matchesRole = selectedRole === 'all' || user.roles.some(role => role.name === selectedRole);
     const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
+
 
   return (
     <div className="p-6 space-y-6">
@@ -128,19 +242,13 @@ const UserAccounts: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">User Accounts</h1>
           <p className="text-gray-600">Manage user accounts, roles, and permissions</p>
         </div>
-        <Can
+        <Can 
           permission="users.create"
           as="button"
           buttonProps={{
+            onClick: handleAddUserClick,
             className: "flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           }}
-          fallback={
-            <FallbackUI 
-              type="permission" 
-              message="You need permission to add users" 
-              size="sm"
-            />
-          }
         >
           <Plus className="w-4 h-4" />
           <span>Add User</span>
@@ -372,6 +480,218 @@ const UserAccounts: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      {isAddUserModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Add New User</h2>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddUser} className="p-6 space-y-4">
+              {formErrors.submit && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+                  {formErrors.submit}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      formErrors.first_name ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter first name"
+                  />
+                  {formErrors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.first_name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      formErrors.last_name ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter last name"
+                  />
+                  {formErrors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.last_name}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      formErrors.email ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter email address"
+                  />
+                </div>
+                {formErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Role
+                  </label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="hr">HR</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="cashier">Cashier</option>
+                    <option value="inventory">Inventory</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password *
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      formErrors.password ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter password"
+                  />
+                </div>
+                {formErrors.password && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm Password *
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      formErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Confirm password"
+                  />
+                </div>
+                {formErrors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Create User</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

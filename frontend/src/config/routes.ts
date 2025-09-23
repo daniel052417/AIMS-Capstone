@@ -3,7 +3,7 @@ import type { RouteComponentProps } from '../App';
 
 // Import shared pages (multi-role access)
 const Dashboard = lazy(() => import('../pages/shared/Dashboard'));
-const UserManagement = lazy(() => import('../pages/shared/UserAccounts'));
+const UserManagement = lazy(() => import('../pages/admin/UserAccounts'));
 const RolesPermissions = lazy(() => import('../pages/shared/RolesPermissions'));
 const UserPermissions = lazy(() => import('../pages/shared/UserPermissions'));
 const SharedInventoryManagement = lazy(() => import('../pages/shared/InventoryManagement'));
@@ -11,6 +11,7 @@ const SharedSalesDashboard = lazy(() => import('../pages/shared/SalesDashboard')
 const SharedMarketingDashboard = lazy(() => import('../pages/shared/MarketingDashboard'));
 const SharedReportsAnalytics = lazy(() => import('../pages/shared/ReportsAnalytics'));
 const SharedSettings = lazy(() => import('../pages/shared/Settings'));
+const Claims = lazy(() => import('../pages/shared/Claims'));
 
 // Import admin pages
 const AdminOverview = lazy(() => import('../pages/admin/Overview'));
@@ -22,6 +23,7 @@ const AdminUserActivity = lazy(() => import('../pages/admin/UserActivity'));
 const InventorySummary = lazy(() => import('../pages/inventory/InventorySummaryPage'));
 const Categories = lazy(() => import('../pages/inventory/Categories'));
 const LowStockAlerts = lazy(() => import('../pages/inventory/LowStockAlerts'));
+const InventoryManagement = lazy(() => import('../pages/inventory/InventoryManagement'));
 
 // Import sales pages
 const SalesDashboard = lazy(() => import('../pages/sales/SalesDashboard'));
@@ -34,12 +36,20 @@ const SalesValue = lazy(() => import('../pages/sales/SalesValue'));
 const POSDashboard = lazy(() => import('../pages/pos/cashier/POSDashboard'));
 const POSInterface = lazy(() => import('../pages/pos/cashier/POSInterface'));
 const PaymentProcessing = lazy(() => import('../pages/pos/cashier/PaymentProcessing'));
+const AgrivetProductHandler = lazy(() => import('../pages/pos/cashier/AgrivetProductHandler'));
+const CustomerLookup = lazy(() => import('../pages/pos/cashier/CustomerLookup'));
+const POSHeader = lazy(() => import('../pages/pos/cashier/POSHeader'));
+const ProductSearch = lazy(() => import('../pages/pos/cashier/ProductSearch'));
+const QuickSaleShortcuts = lazy(() => import('../pages/pos/cashier/QuickSaleShortcuts'));
+const ReceiptGenerator = lazy(() => import('../pages/pos/cashier/ReceiptGenerator'));
+const ShoppingCart = lazy(() => import('../pages/pos/cashier/ShoppingCart'));
 
 // Import marketing pages
 const MarketingDashboard = lazy(() => import('../pages/marketing/MarketingDashboard'));
 const CampaignManagement = lazy(() => import('../pages/marketing/CampaignManagement'));
 const CampaignAnalytics = lazy(() => import('../pages/marketing/CampaignAnalytics'));
 const CampaignForm = lazy(() => import('../pages/marketing/CampaignForm'));
+const CampaignPreview = lazy(() => import('../pages/marketing/CampaignPreview'));
 const TemplateManagement = lazy(() => import('../pages/marketing/TemplateManagement'));
 const ClientNotifications = lazy(() => import('../pages/marketing/ClientNotifications'));
 
@@ -53,15 +63,21 @@ const Exports = lazy(() => import('../pages/reports/Exports'));
 const HRDashboard = lazy(() => import('../pages/hr/HRDashboard'));
 const AddStaff = lazy(() => import('../pages/hr/AddStaff'));
 const AttendanceDashboard = lazy(() => import('../pages/hr/AttendanceDashboard'));
+const AttendanceTimesheet = lazy(() => import('../pages/hr/AttendanceTimesheet'));
+const HRAnalytics = lazy(() => import('../pages/hr/HRAnalytics'));
 const LeaveManagement = lazy(() => import('../pages/hr/LeaveManagement'));
+const LeaveRequest = lazy(() => import('../pages/hr/LeaveRequest'));
 const PayrollCompensation = lazy(() => import('../pages/hr/PayrollCompensation'));
+const Performance = lazy(() => import('../pages/hr/Performance'));
+const Training = lazy(() => import('../pages/hr/Training'));
 
 // Unauthorized page
 const UnauthorizedPage = lazy(() => import('../pages/UnauthorizedPage'));
 
 export interface RouteConfig {
     path: string;
-    component?: ComponentType<any>;    requiredPermissions?: string[];
+    component?: ComponentType<any>;
+    requiredPermissions?: string[];
     requiredRoles?: string[];
     title: string;
     icon?: string;
@@ -80,16 +96,23 @@ export const routes: RouteConfig[] = [
   // Inventory Management Routes
   {
     path: '/inventory',
-    component: SharedInventoryManagement, // Using shared inventory management
+    component: SharedInventoryManagement,
     requiredPermissions: ['inventory.read'],
     title: 'Inventory Overview',
     icon: 'package'
   },
   {
-    path: '/inventory/products',
-    component: InventorySummary, // Using your existing InventorySummaryPage
+    path: '/inventory/management',
+    component: InventoryManagement,
+    requiredPermissions: ['inventory.read'],
+    title: 'Inventory Management',
+    icon: 'warehouse'
+  },
+  {
+    path: '/inventory/summary',
+    component: InventorySummary,
     requiredPermissions: ['products.read'],
-    title: 'Products',
+    title: 'Inventory Summary',
     icon: 'archive'
   },
   {
@@ -106,23 +129,8 @@ export const routes: RouteConfig[] = [
     title: 'Low Stock Alerts',
     icon: 'alert-triangle'
   },
-  // Note: You'll need to create Suppliers and Purchase Orders components
-  // {
-  //   path: '/inventory/suppliers',
-  //   component: SuppliersPage, // MISSING - needs to be created
-  //   requiredPermissions: ['suppliers.read'],
-  //   title: 'Suppliers',
-  //   icon: 'truck'
-  // },
-  // {
-  //   path: '/inventory/purchase-orders',
-  //   component: PurchaseOrdersPage, // MISSING - needs to be created
-  //   requiredPermissions: ['purchase_orders.read'],
-  //   title: 'Purchase Orders',
-  //   icon: 'file-text'
-  // },
 
-  // Sales & POS Routes
+  // Sales Routes
   {
     path: '/sales',
     component: SalesDashboard,
@@ -158,57 +166,84 @@ export const routes: RouteConfig[] = [
     title: 'Sales Value',
     icon: 'dollar-sign'
   },
-  // Note: You'll need to create Customers, Orders, and Payments components
-  // {
-  //   path: '/sales/customers',
-  //   component: CustomersPage, // MISSING - needs to be created
-  //   requiredPermissions: ['customers.read'],
-  //   title: 'Customers',
-  //   icon: 'users'
-  // },
-  // {
-  //   path: '/sales/orders',
-  //   component: OrdersPage, // MISSING - needs to be created
-  //   requiredPermissions: ['orders.read'],
-  //   title: 'Orders',
-  //   icon: 'shopping-cart'
-  // },
-  // {
-  //   path: '/sales/payments',
-  //   component: PaymentsPage, // MISSING - needs to be created
-  //   requiredPermissions: ['payments.read'],
-  //   title: 'Payments',
-  //   icon: 'credit-card'
-  // },
 
   // POS System Routes
   {
     path: '/pos',
-    component:   POSDashboard,
-    requiredRoles: ['cashier', 'admin'],
+    component: POSDashboard,
+    requiredPermissions: ['pos.access'],
     title: 'POS Dashboard',
     icon: 'monitor'
   },
   {
     path: '/pos/interface',
     component: POSInterface,
-    requiredRoles: ['cashier', 'admin'],
+    requiredPermissions: ['pos.access'],
     title: 'POS Interface',
     icon: 'shopping-cart'
   },
   {
     path: '/pos/payments',
     component: PaymentProcessing,
-    requiredRoles: ['cashier', 'admin'],
+    requiredPermissions: ['pos.access'],
     title: 'Payment Processing',
     icon: 'credit-card'
+  },
+  {
+    path: '/pos/product-handler',
+    component: AgrivetProductHandler,
+    requiredPermissions: ['pos.access'],
+    title: 'Product Handler',
+    icon: 'package'
+  },
+  {
+    path: '/pos/customer-lookup',
+    component: CustomerLookup,
+    requiredPermissions: ['pos.access'],
+    title: 'Customer Lookup',
+    icon: 'users'
+  },
+  {
+    path: '/pos/header',
+    component: POSHeader,
+    requiredPermissions: ['pos.access'],
+    title: 'POS Header',
+    icon: 'layout'
+  },
+  {
+    path: '/pos/product-search',
+    component: ProductSearch,
+    requiredPermissions: ['pos.access'],
+    title: 'Product Search',
+    icon: 'search'
+  },
+  {
+    path: '/pos/shortcuts',
+    component: QuickSaleShortcuts,
+    requiredPermissions: ['pos.access'],
+    title: 'Quick Sale Shortcuts',
+    icon: 'zap'
+  },
+  {
+    path: '/pos/receipt',
+    component: ReceiptGenerator,
+    requiredPermissions: ['pos.access'],
+    title: 'Receipt Generator',
+    icon: 'printer'
+  },
+  {
+    path: '/pos/cart',
+    component: ShoppingCart,
+    requiredPermissions: ['pos.access'],
+    title: 'Shopping Cart',
+    icon: 'shopping-bag'
   },
 
   // Administration Routes
   {
     path: '/admin',
     component: AdminOverview,
-    requiredRoles: ['admin'],
+    requiredPermissions: ['admin.overview'],
     title: 'Admin Overview',
     icon: 'shield'
   },
@@ -236,53 +271,95 @@ export const routes: RouteConfig[] = [
   {
     path: '/admin/active-users',
     component: AdminActiveUsers,
-    requiredRoles: ['admin'],
+    requiredPermissions: ['admin.active_users'],
     title: 'Active Users',
     icon: 'user-check'
   },
   {
     path: '/admin/user-activity',
     component: AdminUserActivity,
-    requiredRoles: ['admin'],
+    requiredPermissions: ['admin.user_activity'],
     title: 'User Activity',
     icon: 'clock'
+  },
+  {
+    path: '/admin/settings',
+    component: AdminSettings,
+    requiredPermissions: ['admin.settings'],
+    title: 'Admin Settings',
+    icon: 'settings'
   },
 
   // HR Management Routes
   {
     path: '/hr',
     component: HRDashboard,
-    requiredRoles: ['hr_manager', 'admin'],
+    requiredPermissions: ['hr.staff_read'],
     title: 'HR Dashboard',
     icon: 'users'
   },
   {
     path: '/hr/add-staff',
     component: AddStaff,
-    requiredRoles: ['hr_manager', 'admin'],
+    requiredPermissions: ['hr.staff_create'],
     title: 'Add Staff',
     icon: 'user-plus'
   },
   {
     path: '/hr/attendance',
     component: AttendanceDashboard,
-    requiredRoles: ['hr_manager', 'admin'],
-    title: 'Attendance',
+    requiredPermissions: ['hr.attendance_read'],
+    title: 'Attendance Dashboard',
     icon: 'clock'
+  },
+  {
+    path: '/hr/timesheet',
+    component: AttendanceTimesheet,
+    requiredPermissions: ['hr.timesheet_manage'],
+    title: 'Attendance Timesheet',
+    icon: 'file-text'
+  },
+  {
+    path: '/hr/analytics',
+    component: HRAnalytics,
+    requiredPermissions: ['hr.analytics'],
+    title: 'HR Analytics',
+    icon: 'bar-chart'
   },
   {
     path: '/hr/leave-management',
     component: LeaveManagement,
-    requiredRoles: ['hr_manager', 'admin'],
+    requiredPermissions: ['hr.leave_requests'],
     title: 'Leave Management',
     icon: 'calendar'
   },
   {
+    path: '/hr/leave-request',
+    component: LeaveRequest,
+    requiredPermissions: ['hr.leave_create'],
+    title: 'Leave Request',
+    icon: 'calendar-plus'
+  },
+  {
     path: '/hr/payroll',
     component: PayrollCompensation,
-    requiredRoles: ['hr_manager', 'admin'],
+    requiredPermissions: ['hr.payroll_read'],
     title: 'Payroll & Compensation',
     icon: 'dollar-sign'
+  },
+  {
+    path: '/hr/performance',
+    component: Performance,
+    requiredPermissions: ['hr.performance_read'],
+    title: 'Performance Management',
+    icon: 'trending-up'
+  },
+  {
+    path: '/hr/training',
+    component: Training,
+    requiredPermissions: ['hr.training_read'],
+    title: 'Training Management',
+    icon: 'book-open'
   },
 
   // Marketing Routes
@@ -303,21 +380,35 @@ export const routes: RouteConfig[] = [
   {
     path: '/marketing/analytics',
     component: CampaignAnalytics,
-    requiredPermissions: ['campaigns.read'],
+    requiredPermissions: ['campaigns.analytics'],
     title: 'Campaign Analytics',
     icon: 'bar-chart'
   },
   {
+    path: '/marketing/form',
+    component: CampaignForm,
+    requiredPermissions: ['campaigns.create'],
+    title: 'Campaign Form',
+    icon: 'file-text'
+  },
+  {
+    path: '/marketing/preview',
+    component: CampaignPreview,
+    requiredPermissions: ['campaigns.read'],
+    title: 'Campaign Preview',
+    icon: 'eye'
+  },
+  {
     path: '/marketing/templates',
     component: TemplateManagement,
-    requiredPermissions: ['campaigns.read'],
+    requiredPermissions: ['templates.read'],
     title: 'Template Management',
     icon: 'file-text'
   },
   {
     path: '/marketing/notifications',
     component: ClientNotifications,
-    requiredPermissions: ['campaigns.read'],
+    requiredPermissions: ['notifications.send'],
     title: 'Client Notifications',
     icon: 'bell'
   },
@@ -326,62 +417,40 @@ export const routes: RouteConfig[] = [
   {
     path: '/reports',
     component: ReportsDashboard,
-    requiredPermissions: ['reports.sales', 'reports.inventory', 'reports.financial'],
-    title: 'Reports Overview',
+    requiredPermissions: ['reports.read'],
+    title: 'Reports Dashboard',
     icon: 'file-text'
   },
   {
     path: '/reports/analytics',
     component: ReportsAnalytics,
-    requiredPermissions: ['reports.sales', 'reports.inventory', 'reports.financial'],
+    requiredPermissions: ['reports.analytics'],
     title: 'Reports Analytics',
     icon: 'bar-chart'
   },
   {
     path: '/reports/events',
     component: EventCenter,
-    requiredPermissions: ['reports.sales', 'reports.inventory', 'reports.financial'],
+    requiredPermissions: ['reports.events'],
     title: 'Event Center',
     icon: 'calendar'
   },
   {
     path: '/reports/exports',
     component: Exports,
-    requiredPermissions: ['reports.sales', 'reports.inventory', 'reports.financial'],
+    requiredPermissions: ['reports.export'],
     title: 'Export Reports',
     icon: 'download'
   },
-  // Note: You can add more specific report routes if needed
-  // {
-  //   path: '/reports/sales',
-  //   component: SalesReports, // Could use ProductSalesReport or create new
-  //   requiredPermissions: ['reports.sales'],
-  //   title: 'Sales Reports',
-  //   icon: 'trending-up'
-  // },
-  // {
-  //   path: '/reports/inventory',
-  //   component: InventoryReports, // Could use InventorySummary or create new
-  //   requiredPermissions: ['reports.inventory'],
-  //   title: 'Inventory Reports',
-  //   icon: 'package'
-  // },
-  // {
-  //   path: '/reports/financial',
-  //   component: FinancialReports, // MISSING - needs to be created
-  //   requiredPermissions: ['reports.financial'],
-  //   title: 'Financial Reports',
-  //   icon: 'dollar-sign'
-  // },
 
-  // Note: Branch Management - you don't seem to have this yet
-  // {
-  //   path: '/branches',
-  //   component: BranchManagement, // MISSING - needs to be created
-  //   requiredPermissions: ['branches.read'],
-  //   title: 'Branch Management',
-  //   icon: 'building'
-  // },
+  // Claims Management
+  {
+    path: '/claims',
+    component: Claims,
+    requiredPermissions: ['claims.read'],
+    title: 'Claims Management',
+    icon: 'file-text'
+  },
 
   // System Settings
   {
